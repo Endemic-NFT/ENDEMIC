@@ -36,4 +36,9 @@ abstract contract TokenPoolBase is
     function _releaseTokens(uint256 amount) internal {
         EndemicToken.safeTransfer(msg.sender, amount);
     }
+
+    /**
+     * @notice See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

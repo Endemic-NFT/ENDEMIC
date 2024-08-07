@@ -47,4 +47,9 @@ contract EndemicTokenPool is LiquidPool, PermanentPool {
 
         return stats;
     }
+
+    /**
+     * @notice See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

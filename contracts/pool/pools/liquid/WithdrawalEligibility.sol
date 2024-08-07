@@ -147,4 +147,9 @@ contract WithdrawalEligibility is TokenPoolBase {
     {
         return EligbleWithdraw({amount: 0, gracePeriodEndTime: 0});
     }
+
+    /**
+     * @notice See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

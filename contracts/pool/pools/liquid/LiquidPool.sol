@@ -176,4 +176,9 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
         stakedAmount = stakes[account].amount;
         lockedAmount = locks[account].amount;
     }
+
+    /**
+     * @notice See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }
