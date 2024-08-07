@@ -21,4 +21,9 @@ const calculateAuctionDuration = (auction) => {
   return duration.toString();
 };
 
-module.exports = { weiToEther, addTakerFee, calculateAuctionDuration };
+module.exports = {
+  weiToEther,
+  addTakerFee,
+  calculateCutFromPercent,
+  calculateAuctionDuration,
+};

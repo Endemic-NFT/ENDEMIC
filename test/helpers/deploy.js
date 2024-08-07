@@ -225,6 +225,24 @@ const deployPaymentManager = async (makerFee, takerFee) => {
   return paymentManagerProxy;
 };
 
+const deployEndemicTokenPoolWithDeps = async (deployer) => {
+  const endemicToken = await deployEndemicToken(deployer);
+
+  const EndemicTokenPool = await ethers.getContractFactory('EndemicTokenPool');
+
+  const endemicTokenPool = await upgrades.deployProxy(
+    EndemicTokenPool,
+    [endemicToken.address],
+    {
+      initializer: '__EndemicTokenPool_init',
+    }
+  );
+
+  await endemicTokenPool.deployed();
+
+  return [endemicToken, endemicTokenPool];
+};
+
 module.exports = {
   deployEndemicToken,
   deployCollectionFactory,
@@ -237,4 +255,5 @@ module.exports = {
   deployEndemicExchangeWithDeps,
   deployRoyaltiesProvider,
   deployPaymentManager,
+  deployEndemicTokenPoolWithDeps,
 };
