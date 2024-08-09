@@ -12,9 +12,6 @@ error ExistentTokensToClaim();
  * Tokens can be withdrawn with respecting grace period or immediately by paying ignore fee
  */
 contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
-    event TokensLocked(address indexed account, uint256 indexed amount);
-    event TokensWithdrawn(address indexed account, uint256 indexed amount);
-
     /**
      * @notice Stakes tokens in the liquid pool
      * @param amount The amount of tokens to stake
@@ -31,7 +28,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         _claimTokens(amount);
 
-        emit TokensStaked(msg.sender, amount);
+        emit TokenActivity(ActivityType.Stake, msg.sender, amount);
     }
 
     /**
@@ -56,7 +53,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         _releaseTokens(amountToWithdraw);
 
-        emit TokensWithdrawn(msg.sender, amountToWithdraw);
+        emit TokenActivity(ActivityType.Withdraw, msg.sender, amountToWithdraw);
     }
 
     /**
@@ -82,7 +79,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         _releaseTokens(amountToWithdraw);
 
-        emit TokensWithdrawn(msg.sender, amountToWithdraw);
+        emit TokenActivity(ActivityType.Withdraw, msg.sender, amountToWithdraw);
     }
 
     /**
@@ -106,7 +103,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         _claimTokens(amount);
 
-        emit TokensLocked(msg.sender, amount);
+        emit TokenActivity(ActivityType.Lock, msg.sender, amount);
     }
 
     /**
@@ -133,7 +130,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         _releaseTokens(amountToWithdraw);
 
-        emit TokensWithdrawn(msg.sender, amountToWithdraw);
+        emit TokenActivity(ActivityType.Unlock, msg.sender, amountToWithdraw);
     }
 
     /**
@@ -161,7 +158,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         _releaseTokens(amountToWithdraw);
 
-        emit TokensWithdrawn(msg.sender, amountToWithdraw);
+        emit TokenActivity(ActivityType.Unlock, msg.sender, amountToWithdraw);
     }
 
     /**

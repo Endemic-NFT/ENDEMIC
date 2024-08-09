@@ -1,7 +1,13 @@
+const ActivityType = {
+  PermanentStake: 0,
+  Stake: 1,
+  Withdraw: 2,
+  Lock: 3,
+  Unlock: 4,
+};
+
 const Events = {
-  TokensStaked: 'TokensStaked',
-  TokensLocked: 'TokensLocked',
-  TokensWithdrawn: 'TokensWithdrawn',
+  TokenActivity: 'TokenActivity',
   GracePeriodStarted: 'GracePeriodStarted',
 };
 
@@ -43,6 +49,7 @@ module.exports = {
   Events,
   Errors,
   TimePeriods,
+  ActivityType,
   MethodSignatures,
   Currencies: generateCurrencies(),
 };

@@ -19,7 +19,19 @@ abstract contract TokenPoolBase is
 
     IERC20 internal EndemicToken;
 
-    event TokensStaked(address indexed account, uint256 indexed amount);
+    enum ActivityType {
+        PermanentStake,
+        Stake,
+        Withdraw,
+        Lock,
+        Unlock
+    }
+
+    event TokenActivity(
+        ActivityType indexed activity,
+        address indexed account,
+        uint256 amount
+    );
 
     modifier onlySufficientAmount(uint256 amount) {
         if (amount == 0) {

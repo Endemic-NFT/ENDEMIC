@@ -6,6 +6,7 @@ const {
   Events,
   Errors,
   TimePeriods,
+  ActivityType,
   Currencies,
   MethodSignatures,
 } = require('./constants');
@@ -45,8 +46,12 @@ describe('EndemicTokenPool', function () {
         .permanentStake(Currencies.ONE_ETHER);
 
       await expect(stakeTx)
-        .to.emit(endemicTokenPool, Events.TokensStaked)
-        .withArgs(addr1.address, Currencies.ONE_ETHER);
+        .to.emit(endemicTokenPool, Events.TokenActivity)
+        .withArgs(
+          ActivityType.PermanentStake,
+          addr1.address,
+          Currencies.ONE_ETHER
+        );
 
       const expectedBalance = Currencies.FIVE_ETHER.sub(Currencies.ONE_ETHER); // initial - staked
 
@@ -85,8 +90,8 @@ describe('EndemicTokenPool', function () {
         .liquidStake(Currencies.ONE_ETHER);
 
       await expect(stakeTx)
-        .to.emit(endemicTokenPool, Events.TokensStaked)
-        .withArgs(addr1.address, Currencies.ONE_ETHER);
+        .to.emit(endemicTokenPool, Events.TokenActivity)
+        .withArgs(1, addr1.address, Currencies.ONE_ETHER);
 
       const expectedBalance = Currencies.FIVE_ETHER.sub(Currencies.ONE_ETHER); // initial - staked
 
@@ -135,8 +140,8 @@ describe('EndemicTokenPool', function () {
         [MethodSignatures.WithdrawWithGracePeriod](false);
 
       await expect(withdrawTx)
-        .to.emit(endemicTokenPool, Events.TokensWithdrawn)
-        .withArgs(addr1.address, Currencies.ONE_ETHER);
+        .to.emit(endemicTokenPool, Events.TokenActivity)
+        .withArgs(2, addr1.address, Currencies.ONE_ETHER);
 
       const expectedBalance = Currencies.FIVE_ETHER;
 
@@ -165,8 +170,12 @@ describe('EndemicTokenPool', function () {
       // current balance: 5(inital) - 1(staked) = 4
 
       await expect(withdrawTx)
-        .to.emit(endemicTokenPool, Events.TokensWithdrawn)
-        .withArgs(addr1.address, penalizedWithdrawAmount);
+        .to.emit(endemicTokenPool, Events.TokenActivity)
+        .withArgs(
+          ActivityType.Withdraw,
+          addr1.address,
+          penalizedWithdrawAmount
+        );
 
       const balance = await endemicToken.balanceOf(addr1.address);
 
@@ -187,8 +196,8 @@ describe('EndemicTokenPool', function () {
       const lockTx = endemicTokenPool.connect(addr1).lock(Currencies.ONE_ETHER);
 
       await expect(lockTx)
-        .to.emit(endemicTokenPool, Events.TokensLocked)
-        .withArgs(addr1.address, Currencies.ONE_ETHER);
+        .to.emit(endemicTokenPool, Events.TokenActivity)
+        .withArgs(ActivityType.Lock, addr1.address, Currencies.ONE_ETHER);
 
       const expectedBalance = Currencies.FIVE_ETHER.sub(Currencies.ONE_ETHER); // initial - locked
 
@@ -289,8 +298,8 @@ describe('EndemicTokenPool', function () {
       // current balance: 5(inital) - 1(locked) = 4
 
       await expect(unlockTx)
-        .to.emit(endemicTokenPool, Events.TokensWithdrawn)
-        .withArgs(addr1.address, penalizedWithdrawAmount);
+        .to.emit(endemicTokenPool, Events.TokenActivity)
+        .withArgs(ActivityType.Unlock, addr1.address, penalizedWithdrawAmount);
 
       const balance = await endemicToken.balanceOf(addr1.address);
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "../TokenPoolBase.sol";
 
@@ -23,7 +23,7 @@ contract PermanentPool is TokenPoolBase {
 
         _claimTokens(amount);
 
-        emit TokensStaked(msg.sender, amount);
+        emit TokenActivity(ActivityType.PermanentStake, msg.sender, amount);
     }
 
     /**
