@@ -102,7 +102,7 @@ contract WithdrawalEligibility is TokenPoolBase {
         uint256 availableToWithdraw,
         uint256 amount
     ) internal pure {
-        if (availableToWithdraw > amount) {
+        if (availableToWithdraw >= amount) {
             return;
         }
 
