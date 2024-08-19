@@ -23,7 +23,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         stakes[msg.sender] = Stake({
             amount: stakeInfo.amount + amount,
-            eligbleWithdraw: stakeInfo.eligbleWithdraw
+            eligibleWithdraw: stakeInfo.eligibleWithdraw
         });
 
         _claimTokens(amount);
@@ -46,8 +46,8 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         uint256 amountToWithdraw = _substractRemovalFee(amount);
 
-        stakeInfo.eligbleWithdraw = _initEligbleWithdraw();
-        stakeInfo.amount = stakeInfo.amount - amount;
+        stakeInfo.eligibleWithdraw = _initEligibleWithdraw();
+        stakeInfo.amount = availableToWithdraw - amount;
 
         stakes[msg.sender] = stakeInfo;
 
@@ -63,16 +63,16 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
     function withdraw(bool ignoreGracePeriod) external nonReentrant {
         Stake memory stakeInfo = stakes[msg.sender];
 
-        uint256 availableToWithdraw = stakeInfo.eligbleWithdraw.amount;
+        uint256 availableToWithdraw = stakeInfo.eligibleWithdraw.amount;
 
         _checkWithdrawEligibility(availableToWithdraw);
 
         uint256 amountToWithdraw = _getAmountToWithdraw(
-            stakeInfo.eligbleWithdraw,
+            stakeInfo.eligibleWithdraw,
             ignoreGracePeriod
         );
 
-        stakeInfo.eligbleWithdraw = _initEligbleWithdraw();
+        stakeInfo.eligibleWithdraw = _initEligibleWithdraw();
         stakeInfo.amount = stakeInfo.amount - availableToWithdraw;
 
         stakes[msg.sender] = stakeInfo;
@@ -98,7 +98,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
         locks[msg.sender] = Lock({
             amount: amount,
             lockTime: block.timestamp,
-            eligbleWithdraw: _initEligbleWithdraw()
+            eligibleWithdraw: _initEligibleWithdraw()
         });
 
         _claimTokens(amount);
@@ -123,7 +123,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
 
         uint256 amountToWithdraw = _substractRemovalFee(amount);
 
-        lockInfo.eligbleWithdraw = _initEligbleWithdraw();
+        lockInfo.eligibleWithdraw = _initEligibleWithdraw();
         lockInfo.amount = lockInfo.amount - amount;
 
         locks[msg.sender] = lockInfo;
@@ -140,18 +140,18 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
     function unlock(bool ignoreGracePeriod) external nonReentrant {
         Lock memory lockInfo = locks[msg.sender];
 
-        uint256 availableWithdraw = lockInfo.eligbleWithdraw.amount;
+        uint256 availableWithdraw = lockInfo.eligibleWithdraw.amount;
 
         _checkWithdrawEligibility(availableWithdraw);
 
         _checkUnlockPeriod(lockInfo.lockTime);
 
         uint256 amountToWithdraw = _getAmountToWithdraw(
-            lockInfo.eligbleWithdraw,
+            lockInfo.eligibleWithdraw,
             ignoreGracePeriod
         );
 
-        lockInfo.eligbleWithdraw = _initEligbleWithdraw();
+        lockInfo.eligibleWithdraw = _initEligibleWithdraw();
         lockInfo.amount = lockInfo.amount - availableWithdraw;
 
         locks[msg.sender] = lockInfo;

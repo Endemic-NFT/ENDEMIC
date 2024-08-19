@@ -1,3 +1,4 @@
+/* eslint-disable no-unexpected-multiline */
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const { deployEndemicTokenPoolWithDeps } = require('../helpers/deploy');
@@ -149,6 +150,17 @@ describe('EndemicTokenPool', function () {
       expect(balance).to.equal(expectedBalance);
     });
 
+    it('Should fail to start withdrawal period without staked tokens', async function () {
+      const startWithdrawPeriodTx = endemicTokenPool
+        .connect(addr2)
+        .startWithdrawPeriod(Currencies.ONE_ETHER);
+
+      await expect(startWithdrawPeriodTx).to.be.revertedWithCustomError(
+        endemicTokenPool,
+        Errors.StakedAmountExceeded
+      );
+    });
+
     it('Should withdraw immediately with removal fee during grace period', async function () {
       const startWithdrawTx = endemicTokenPool
         .connect(addr1)
@@ -253,6 +265,16 @@ describe('EndemicTokenPool', function () {
       );
     });
 
+    it('Should fail to start unlock period without unlocked tokens', async function () {
+      const startUnlockPeriodTx = endemicTokenPool
+        .connect(addr2)
+        .startUnlockPeriod(Currencies.ONE_ETHER);
+
+      await expect(startUnlockPeriodTx).to.be.revertedWithCustomError(
+        endemicTokenPool,
+        Errors.LockedAmountExceeded
+      );
+    });
     it('Should unlock after upgrade period ends with respecting grace period', async function () {
       // fast forward time by 2 years of lock time
       await fastForwardTime(TimePeriods.TWO_YEARS);
@@ -553,12 +575,28 @@ describe('EndemicTokenPool', function () {
         .approve(endemicTokenPool.address, Currencies.FIVE_ETHER);
     });
 
-    it('Should withdraw without starting grace period', async function () {
+    it('Should withdraw exact amount without starting grace period', async function () {
+      await endemicTokenPool.connect(addr1).liquidStake(Currencies.ONE_ETHER);
+
+      await endemicTokenPool
+        .connect(addr1)
+        [MethodSignatures.WithdrawImmediately](Currencies.ONE_ETHER);
+
+      const expectedBalance = ethers.utils.parseEther('4.9');
+
+      const balance = await endemicToken.balanceOf(addr1.address);
+      expect(balance).to.equal(expectedBalance); // 5(inital) - 1(staked) + (1 - 0.1 (fee)) = 4.9
+
+      const stats = await endemicTokenPool.getPoolStats(addr1.address);
+      expect(stats.liquidStake).to.equal(0);
+    });
+
+    it('Should withdraw less than staked without starting grace period', async function () {
       await endemicTokenPool.connect(addr1).liquidStake(Currencies.TWO_ETHER);
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.WithdrawImediately](Currencies.ONE_ETHER);
+        [MethodSignatures.WithdrawImmediately](Currencies.ONE_ETHER);
 
       const expectedBalance = ethers.utils.parseEther('3.9');
 
@@ -574,7 +612,7 @@ describe('EndemicTokenPool', function () {
 
       const withdrawTx = endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.WithdrawImediately](Currencies.FIVE_ETHER);
+        [MethodSignatures.WithdrawImmediately](Currencies.FIVE_ETHER);
 
       await expect(withdrawTx).to.be.revertedWithCustomError(
         endemicTokenPool,
@@ -582,14 +620,32 @@ describe('EndemicTokenPool', function () {
       );
     });
 
-    it('Should unlock without starting grace period', async function () {
+    it('Should unlock exact amount without starting grace period', async function () {
+      await endemicTokenPool.connect(addr1).lock(Currencies.ONE_ETHER);
+
+      await fastForwardTime(TimePeriods.TWO_YEARS);
+
+      await endemicTokenPool
+        .connect(addr1)
+        [MethodSignatures.UnlockImmediately](Currencies.ONE_ETHER);
+
+      const expectedBalance = ethers.utils.parseEther('4.9');
+
+      const balance = await endemicToken.balanceOf(addr1.address);
+      expect(balance).to.equal(expectedBalance); // 5(inital) - 1(staked) + (1 - 0.1 (fee)) = 4.9
+
+      const stats = await endemicTokenPool.getPoolStats(addr1.address);
+      expect(stats.liquidLock).to.equal(0);
+    });
+
+    it('Should unlock less than locked amount without starting grace period', async function () {
       await endemicTokenPool.connect(addr1).lock(Currencies.TWO_ETHER);
 
       await fastForwardTime(TimePeriods.TWO_YEARS);
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockImediately](Currencies.ONE_ETHER);
+        [MethodSignatures.UnlockImmediately](Currencies.ONE_ETHER);
 
       const expectedBalance = ethers.utils.parseEther('3.9');
 
@@ -607,7 +663,7 @@ describe('EndemicTokenPool', function () {
 
       const unlockTx = endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockImediately](Currencies.FIVE_ETHER);
+        [MethodSignatures.UnlockImmediately](Currencies.FIVE_ETHER);
 
       await expect(unlockTx).to.be.revertedWithCustomError(
         endemicTokenPool,

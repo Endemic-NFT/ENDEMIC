@@ -17,7 +17,7 @@ abstract contract TokenPoolBase is
 {
     using SafeERC20 for IERC20;
 
-    IERC20 internal EndemicToken;
+    IERC20 internal endemicToken;
 
     enum ActivityType {
         PermanentStake,
@@ -42,11 +42,11 @@ abstract contract TokenPoolBase is
     }
 
     function _claimTokens(uint256 amount) internal {
-        EndemicToken.safeTransferFrom(msg.sender, address(this), amount);
+        endemicToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function _releaseTokens(uint256 amount) internal {
-        EndemicToken.safeTransfer(msg.sender, amount);
+        endemicToken.safeTransfer(msg.sender, amount);
     }
 
     /**

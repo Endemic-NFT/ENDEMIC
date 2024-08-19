@@ -6,6 +6,8 @@ import "../TokenPoolBase.sol";
 error UnlockPeriodNotFinished();
 error NonWithdrawableTokens();
 error AmountExceedsAvailableWithdraw();
+error StakedAmountExceeded();
+error LockedAmountExceeded();
 
 /**
  * @title WithdrawalEligibility
@@ -16,18 +18,18 @@ contract WithdrawalEligibility is TokenPoolBase {
     uint256 internal constant GRACE_PERIOD_REMOVAL_FEE = 1000;
     uint256 internal constant UPGRADE_PERIOD = 63_158_400; // 2 years considering leap years in seconds;
 
-    struct EligbleWithdraw {
+    struct EligibleWithdraw {
         uint256 gracePeriodEndTime;
         uint256 amount;
     }
 
     struct Stake {
-        EligbleWithdraw eligbleWithdraw;
+        EligibleWithdraw eligibleWithdraw;
         uint256 amount;
     }
 
     struct Lock {
-        EligbleWithdraw eligbleWithdraw;
+        EligibleWithdraw eligibleWithdraw;
         uint256 lockTime;
         uint256 amount;
     }
@@ -46,11 +48,15 @@ contract WithdrawalEligibility is TokenPoolBase {
     ) external onlySufficientAmount(amount) {
         Stake memory stakeInfo = stakes[msg.sender];
 
-        _startGracePeriod(stakeInfo.eligbleWithdraw, amount);
+        if (stakeInfo.amount < amount) {
+            revert StakedAmountExceeded();
+        }
+
+        _startGracePeriod(stakeInfo.eligibleWithdraw, amount);
 
         stakes[msg.sender] = stakeInfo;
 
-        emit GracePeriodStarted(msg.sender, stakeInfo.eligbleWithdraw.amount);
+        emit GracePeriodStarted(msg.sender, stakeInfo.eligibleWithdraw.amount);
     }
 
     function startUnlockPeriod(
@@ -58,36 +64,28 @@ contract WithdrawalEligibility is TokenPoolBase {
     ) external onlySufficientAmount(amount) {
         Lock memory lockInfo = locks[msg.sender];
 
-        _startGracePeriod(lockInfo.eligbleWithdraw, amount);
+        if (lockInfo.amount < amount) {
+            revert LockedAmountExceeded();
+        }
+
+        _startGracePeriod(lockInfo.eligibleWithdraw, amount);
 
         locks[msg.sender] = lockInfo;
 
         emit GracePeriodStarted(
             msg.sender,
-            lockInfo.eligbleWithdraw.gracePeriodEndTime
+            lockInfo.eligibleWithdraw.gracePeriodEndTime
         );
     }
 
     function _startGracePeriod(
-        EligbleWithdraw memory eligbleWithdraw,
+        EligibleWithdraw memory eligibleWithdraw,
         uint256 amount
     ) internal view {
-        _checkWithdrawEligibility(amount);
-
         uint256 endGracePeriodTime = block.timestamp + GRACE_PERIOD;
 
-        eligbleWithdraw.gracePeriodEndTime = endGracePeriodTime;
-        eligbleWithdraw.amount = amount;
-    }
-
-    function _checkWithdrawEligibility(
-        uint256 eligbleWithdrawAmount
-    ) internal pure {
-        if (eligbleWithdrawAmount != 0) {
-            return;
-        }
-
-        revert NonWithdrawableTokens();
+        eligibleWithdraw.gracePeriodEndTime = endGracePeriodTime;
+        eligibleWithdraw.amount = amount;
     }
 
     function _checkUnlockPeriod(uint256 lockTime) internal view {
@@ -98,11 +96,21 @@ contract WithdrawalEligibility is TokenPoolBase {
         revert UnlockPeriodNotFinished();
     }
 
+    function _checkWithdrawEligibility(
+        uint256 eligibleWithdrawAmount
+    ) internal pure {
+        if (eligibleWithdrawAmount != 0) {
+            return;
+        }
+
+        revert NonWithdrawableTokens();
+    }
+
     function _checkAvailableWithdraw(
         uint256 availableToWithdraw,
         uint256 amount
     ) internal pure {
-        if (availableToWithdraw > amount) {
+        if (availableToWithdraw >= amount) {
             return;
         }
 
@@ -110,20 +118,20 @@ contract WithdrawalEligibility is TokenPoolBase {
     }
 
     function _getAmountToWithdraw(
-        EligbleWithdraw memory eligbleWithdraw,
+        EligibleWithdraw memory eligibleWithdraw,
         bool ignoreGracePeriod
     ) internal view returns (uint256) {
         if (ignoreGracePeriod) {
-            return _substractRemovalFee(eligbleWithdraw.amount);
+            return _substractRemovalFee(eligibleWithdraw.amount);
         }
 
-        uint256 endGracePeriodTime = eligbleWithdraw.gracePeriodEndTime;
+        uint256 endGracePeriodTime = eligibleWithdraw.gracePeriodEndTime;
 
         if (endGracePeriodTime == 0 || block.timestamp < endGracePeriodTime) {
             revert GracePeriodNotFinished();
         }
 
-        return eligbleWithdraw.amount;
+        return eligibleWithdraw.amount;
     }
 
     function _substractRemovalFee(
@@ -140,12 +148,12 @@ contract WithdrawalEligibility is TokenPoolBase {
         return (amount * GRACE_PERIOD_REMOVAL_FEE) / 10000;
     }
 
-    function _initEligbleWithdraw()
+    function _initEligibleWithdraw()
         internal
         pure
-        returns (EligbleWithdraw memory)
+        returns (EligibleWithdraw memory)
     {
-        return EligbleWithdraw({amount: 0, gracePeriodEndTime: 0});
+        return EligibleWithdraw({amount: 0, gracePeriodEndTime: 0});
     }
 
     /**

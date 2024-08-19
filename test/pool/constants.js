@@ -1,3 +1,5 @@
+const { utils } = require('ethers');
+
 const ActivityType = {
   PermanentStake: 0,
   Stake: 1,
@@ -18,12 +20,14 @@ const Errors = {
   UnlockPeriodNotFinished: 'UnlockPeriodNotFinished',
   ExistentTokensToClaim: 'ExistentTokensToClaim',
   AmountExceedsAvailableWithdraw: 'AmountExceedsAvailableWithdraw',
+  StakedAmountExceeded: 'StakedAmountExceeded',
+  LockedAmountExceeded: 'LockedAmountExceeded',
 };
 
 const MethodSignatures = {
-  WithdrawImediately: 'withdraw(uint256)',
+  WithdrawImmediately: 'withdraw(uint256)',
   WithdrawWithGracePeriod: 'withdraw(bool)',
-  UnlockImediately: 'unlock(uint256)',
+  UnlockImmediately: 'unlock(uint256)',
   UnlockWithGracePeriod: 'unlock(bool)',
 };
 
@@ -39,7 +43,7 @@ function generateCurrencies() {
   numberWords.forEach((word, index) => {
     const key = `${word}_ETHER`;
     const value = index + 1;
-    currencyObject[key] = ethers.utils.parseEther(value.toString());
+    currencyObject[key] = utils.parseEther(value.toString());
   });
 
   return currencyObject;

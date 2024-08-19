@@ -23,7 +23,7 @@ contract EndemicTokenPool is LiquidPool, PermanentPool {
         __Ownable_init();
         __ReentrancyGuard_init();
 
-        EndemicToken = IERC20(tokenAddress);
+        endemicToken = IERC20(tokenAddress);
     }
 
     /**

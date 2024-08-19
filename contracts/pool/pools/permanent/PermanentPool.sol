@@ -36,4 +36,9 @@ contract PermanentPool is TokenPoolBase {
     ) public view returns (uint256) {
         return stakes[account];
     }
+
+    /**
+     * @notice See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }
