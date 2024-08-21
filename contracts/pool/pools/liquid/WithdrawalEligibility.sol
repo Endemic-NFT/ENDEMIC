@@ -34,9 +34,9 @@ contract WithdrawalEligibility is TokenPoolBase {
         uint256 amount;
     }
 
-    mapping(address => Stake) internal stakes;
+    mapping(address account => Stake stakes) internal stakes;
 
-    mapping(address => Lock) internal locks;
+    mapping(address account => Lock locks) internal locks;
 
     event GracePeriodStarted(
         address indexed account,
@@ -118,13 +118,8 @@ contract WithdrawalEligibility is TokenPoolBase {
     }
 
     function _getAmountToWithdraw(
-        EligibleWithdraw memory eligibleWithdraw,
-        bool ignoreGracePeriod
+        EligibleWithdraw memory eligibleWithdraw
     ) internal view returns (uint256) {
-        if (ignoreGracePeriod) {
-            return _substractRemovalFee(eligibleWithdraw.amount);
-        }
-
         uint256 endGracePeriodTime = eligibleWithdraw.gracePeriodEndTime;
 
         if (endGracePeriodTime == 0 || block.timestamp < endGracePeriodTime) {

@@ -26,9 +26,9 @@ const Errors = {
 
 const MethodSignatures = {
   WithdrawImmediately: 'withdraw(uint256)',
-  WithdrawWithGracePeriod: 'withdraw(bool)',
+  WithdrawWithGracePeriod: 'withdraw()',
   UnlockImmediately: 'unlock(uint256)',
-  UnlockWithGracePeriod: 'unlock(bool)',
+  UnlockWithGracePeriod: 'unlock()',
 };
 
 const TimePeriods = {

@@ -57,10 +57,9 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
     }
 
     /**
-     * @notice Withdraws staked tokens after starting grace period
-     * @param ignoreGracePeriod Whether to ignore the grace period after starting it
+     * @notice Withdraws staked tokens after finishing grace period
      */
-    function withdraw(bool ignoreGracePeriod) external nonReentrant {
+    function withdraw() external nonReentrant {
         Stake memory stakeInfo = stakes[msg.sender];
 
         uint256 availableToWithdraw = stakeInfo.eligibleWithdraw.amount;
@@ -68,8 +67,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
         _checkWithdrawEligibility(availableToWithdraw);
 
         uint256 amountToWithdraw = _getAmountToWithdraw(
-            stakeInfo.eligibleWithdraw,
-            ignoreGracePeriod
+            stakeInfo.eligibleWithdraw
         );
 
         stakeInfo.eligibleWithdraw = _initEligibleWithdraw();
@@ -134,10 +132,9 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
     }
 
     /**
-     * @notice Withdraws unlocked tokens after starting grace period
-     * @param ignoreGracePeriod Whether to ignore the grace period
+     * @notice Withdraws unlocked tokens after finishing grace period
      */
-    function unlock(bool ignoreGracePeriod) external nonReentrant {
+    function unlock() external nonReentrant {
         Lock memory lockInfo = locks[msg.sender];
 
         uint256 availableWithdraw = lockInfo.eligibleWithdraw.amount;
@@ -147,8 +144,7 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
         _checkUnlockPeriod(lockInfo.lockTime);
 
         uint256 amountToWithdraw = _getAmountToWithdraw(
-            lockInfo.eligibleWithdraw,
-            ignoreGracePeriod
+            lockInfo.eligibleWithdraw
         );
 
         lockInfo.eligibleWithdraw = _initEligibleWithdraw();

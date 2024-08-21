@@ -8,7 +8,7 @@ import "../TokenPoolBase.sol";
  * @dev Provides functionality for permanently staking tokens
  */
 contract PermanentPool is TokenPoolBase {
-    mapping(address => uint256) private stakes;
+    mapping(address account => uint256 stakeAmount) private stakes;
 
     /**
      * @notice Stakes tokens permanently

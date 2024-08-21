@@ -11,7 +11,6 @@ const {
   Currencies,
   MethodSignatures,
 } = require('./constants');
-const { calculateCutFromPercent } = require('../helpers/token');
 
 describe('EndemicTokenPool', function () {
   let owner, addr1, addr2, endemicToken, endemicTokenPool, snapshotId;
@@ -120,7 +119,7 @@ describe('EndemicTokenPool', function () {
 
       const withdrawTx = endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.WithdrawWithGracePeriod](false);
+        [MethodSignatures.WithdrawWithGracePeriod]();
 
       await expect(withdrawTx).to.be.revertedWithCustomError(
         endemicTokenPool,
@@ -138,7 +137,7 @@ describe('EndemicTokenPool', function () {
 
       const withdrawTx = endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.WithdrawWithGracePeriod](false);
+        [MethodSignatures.WithdrawWithGracePeriod]();
 
       await expect(withdrawTx)
         .to.emit(endemicTokenPool, Events.TokenActivity)
@@ -159,43 +158,6 @@ describe('EndemicTokenPool', function () {
         endemicTokenPool,
         Errors.StakedAmountExceeded
       );
-    });
-
-    it('Should withdraw immediately with removal fee during grace period', async function () {
-      const startWithdrawTx = endemicTokenPool
-        .connect(addr1)
-        .startWithdrawPeriod(Currencies.ONE_ETHER);
-
-      await expect(startWithdrawTx).to.emit(
-        endemicTokenPool,
-        Events.GracePeriodStarted
-      );
-
-      const withdrawTx = endemicTokenPool
-        .connect(addr1)
-        [MethodSignatures.WithdrawWithGracePeriod](true);
-
-      const fee = calculateCutFromPercent(Currencies.ONE_ETHER, 1000); // 10% fee
-
-      const penalizedWithdrawAmount = Currencies.ONE_ETHER.sub(fee);
-
-      // current balance: 5(inital) - 1(staked) = 4
-
-      await expect(withdrawTx)
-        .to.emit(endemicTokenPool, Events.TokenActivity)
-        .withArgs(
-          ActivityType.Withdraw,
-          addr1.address,
-          penalizedWithdrawAmount
-        );
-
-      const balance = await endemicToken.balanceOf(addr1.address);
-
-      const expectedBalance = Currencies.FOUR_ETHER.add(
-        penalizedWithdrawAmount
-      ); // initial 4 + penalized amount
-
-      expect(balance).to.equal(expectedBalance);
     });
   });
 
@@ -242,7 +204,7 @@ describe('EndemicTokenPool', function () {
     it('Should fail to unlock before starting withdrawable period', async function () {
       const unlockTx = endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockWithGracePeriod](false);
+        [MethodSignatures.UnlockWithGracePeriod]();
 
       await expect(unlockTx).to.be.revertedWithCustomError(
         endemicTokenPool,
@@ -257,7 +219,7 @@ describe('EndemicTokenPool', function () {
 
       const unlockTx = endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockWithGracePeriod](false);
+        [MethodSignatures.UnlockWithGracePeriod]();
 
       await expect(unlockTx).to.be.revertedWithCustomError(
         endemicTokenPool,
@@ -288,48 +250,10 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockWithGracePeriod](false);
+        [MethodSignatures.UnlockWithGracePeriod]();
 
       const balance = await endemicToken.balanceOf(addr1.address);
       expect(balance).to.equal(Currencies.FIVE_ETHER); // 4(inital) + 1(locked)
-    });
-
-    it('Should unlock after upgrade period ends with grace period removal fee', async function () {
-      // fast forward time by 2 years of lock time
-      await fastForwardTime(TimePeriods.TWO_YEARS);
-
-      await endemicTokenPool
-        .connect(addr1)
-        .startUnlockPeriod(Currencies.ONE_ETHER);
-
-      // fast forward time by 4 weeks of grace period
-      await fastForwardTime(TimePeriods.FOUR_WEEKS);
-
-      await endemicTokenPool
-        .connect(addr1)
-        .startUnlockPeriod(Currencies.ONE_ETHER);
-
-      const unlockTx = endemicTokenPool
-        .connect(addr1)
-        [MethodSignatures.UnlockWithGracePeriod](true);
-
-      const fee = calculateCutFromPercent(Currencies.ONE_ETHER, 1000); // 10% fee
-
-      const penalizedWithdrawAmount = Currencies.ONE_ETHER.sub(fee);
-
-      // current balance: 5(inital) - 1(locked) = 4
-
-      await expect(unlockTx)
-        .to.emit(endemicTokenPool, Events.TokenActivity)
-        .withArgs(ActivityType.Unlock, addr1.address, penalizedWithdrawAmount);
-
-      const balance = await endemicToken.balanceOf(addr1.address);
-
-      const expectedBalance = Currencies.FOUR_ETHER.add(
-        penalizedWithdrawAmount
-      ); // initial 4 + penalized amount
-
-      expect(balance).to.equal(expectedBalance);
     });
   });
 
@@ -349,7 +273,7 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.WithdrawWithGracePeriod](false);
+        [MethodSignatures.WithdrawWithGracePeriod]();
 
       const balance = await endemicToken.balanceOf(addr1.address);
       expect(balance).to.equal(Currencies.THREE_ETHER); // 5(initial) - 4(staked) + 2(withdrawn) = 3
@@ -376,7 +300,7 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockWithGracePeriod](false);
+        [MethodSignatures.UnlockWithGracePeriod]();
 
       const balance = await endemicToken.balanceOf(addr1.address);
       expect(balance).to.equal(Currencies.THREE_ETHER); // 5(initial) - 4(locked) + 2(withdrawn) = 3
@@ -411,10 +335,10 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.WithdrawWithGracePeriod](false);
+        [MethodSignatures.WithdrawWithGracePeriod]();
       await endemicTokenPool
         .connect(addr2)
-        [MethodSignatures.WithdrawWithGracePeriod](false);
+        [MethodSignatures.WithdrawWithGracePeriod]();
 
       const addr1Balance = await endemicToken.balanceOf(addr1.address);
       const addr2Balance = await endemicToken.balanceOf(addr2.address);
@@ -450,10 +374,10 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockWithGracePeriod](false);
+        [MethodSignatures.UnlockWithGracePeriod]();
       await endemicTokenPool
         .connect(addr2)
-        [MethodSignatures.UnlockWithGracePeriod](false);
+        [MethodSignatures.UnlockWithGracePeriod]();
 
       const addr1Balance = await endemicToken.balanceOf(addr1.address);
       const addr2Balance = await endemicToken.balanceOf(addr2.address);
@@ -493,7 +417,7 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.WithdrawWithGracePeriod](false);
+        [MethodSignatures.WithdrawWithGracePeriod]();
 
       const firstBalance = await endemicToken.balanceOf(addr1.address);
       expect(firstBalance).to.equal(Currencies.THREE_ETHER); // 5(initial) - 4(locked) + 2(withdrawn) = 3
@@ -509,7 +433,7 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.WithdrawWithGracePeriod](false);
+        [MethodSignatures.WithdrawWithGracePeriod]();
 
       const secondBalance = await endemicToken.balanceOf(addr1.address);
       expect(secondBalance).to.equal(Currencies.FIVE_ETHER); // 3(initial) + 2(withdrawn) = 5
@@ -542,7 +466,7 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockWithGracePeriod](false);
+        [MethodSignatures.UnlockWithGracePeriod]();
 
       const firstBalance = await endemicToken.balanceOf(addr1.address);
       expect(firstBalance).to.equal(Currencies.FOUR_ETHER); // 5(initial) - 2(locked) + 1(withdrawn) = 4
@@ -558,7 +482,7 @@ describe('EndemicTokenPool', function () {
 
       await endemicTokenPool
         .connect(addr1)
-        [MethodSignatures.UnlockWithGracePeriod](false);
+        [MethodSignatures.UnlockWithGracePeriod]();
 
       const secondBalance = await endemicToken.balanceOf(addr1.address);
       expect(secondBalance).to.equal(Currencies.FIVE_ETHER); // 4(initial) + 1(withdrawn) = 5
