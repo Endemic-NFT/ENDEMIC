@@ -32,7 +32,8 @@ describe('EndemicSale', () => {
     user2,
     mintApprover,
     collectionAdministrator,
-    royaltiesRecipient;
+    royaltiesRecipient,
+    collectiveRecipient;
 
   const RANDOM_R_VALUE =
     '0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d';
@@ -45,6 +46,7 @@ describe('EndemicSale', () => {
   const ONE_ETHER_MAKER_CUT = ONE_ETHER.mul(25).div(1000); // 2.5% = 0.025 eth
   const ONE_ETHER_TAKER_CUT = ONE_ETHER.mul(30).div(1000); // 3% = 0.03 eth
   const ONE_ETHER_ROYALTY_AMOUNT = ONE_ETHER.mul(150).div(1000); // 15% = 0.15 eth
+  const ONE_ETHER_COLLECTIVE_CUT = ONE_ETHER.mul(50).div(1000); // 5% = 0.05 eth
   const ZERO_ONE_ETHER = ethers.utils.parseUnits('0.1');
 
   const mintToken = async (recipient) => {
@@ -66,6 +68,7 @@ describe('EndemicSale', () => {
       mintApprover,
       collectionAdministrator,
       royaltiesRecipient,
+      collectiveRecipient,
     ] = await ethers.getSigners();
 
     const result = await deployEndemicExchangeWithDeps();
@@ -104,6 +107,8 @@ describe('EndemicSale', () => {
       takerCut: ONE_ETHER_TAKER_CUT,
       royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
       royaltiesRecipient: royaltiesRecipient.address,
+      collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+      collectiveRecipient: collectiveRecipient.address,
       buyer,
     });
 
@@ -139,6 +144,8 @@ describe('EndemicSale', () => {
             takerCut: 0,
             royaltiesCut: 0,
             royaltiesRecipient: ZERO_ADDRESS,
+            collectiveCut: 0,
+            collectiveRecipient: ZERO_ADDRESS,
             buyer: ZERO_ADDRESS,
             expiresAt: LAST_YEAR_TIMESTAMP,
           })
@@ -168,6 +175,8 @@ describe('EndemicSale', () => {
             takerCut: ONE_ETHER_TAKER_CUT,
             royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+            collectiveRecipient: collectiveRecipient.address,
             buyer: ZERO_ADDRESS,
             expiresAt: 2000994705,
           },
@@ -195,6 +204,8 @@ describe('EndemicSale', () => {
             takerCut: 0,
             royaltiesCut: 0,
             royaltiesRecipient: ZERO_ADDRESS,
+            collectiveCut: 0,
+            collectiveRecipient: ZERO_ADDRESS,
             buyer: ZERO_ADDRESS,
             expiresAt: RANDOM_TIMESTAMP,
           }
@@ -221,6 +232,8 @@ describe('EndemicSale', () => {
             takerCut: ONE_ETHER_TAKER_CUT,
             royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+            collectiveRecipient: collectiveRecipient.address,
             buyer: ZERO_ADDRESS,
             expiresAt: 2000994705,
           },
@@ -253,6 +266,8 @@ describe('EndemicSale', () => {
             takerCut: ONE_ETHER_TAKER_CUT,
             royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+            collectiveRecipient: collectiveRecipient.address,
             buyer: ZERO_ADDRESS,
             expiresAt: RANDOM_TIMESTAMP,
           },
@@ -282,6 +297,8 @@ describe('EndemicSale', () => {
             takerCut: ONE_ETHER_TAKER_CUT,
             royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+            collectiveRecipient: collectiveRecipient.address,
             buyer: ZERO_ADDRESS,
             expiresAt: 2000994705,
           },
@@ -300,12 +317,16 @@ describe('EndemicSale', () => {
       // user sends 1.03 eth
       // maker fee is 2.5% = 0.025 eth
       // royalties are 15% = 0.15 eth
-      // owner will get 0.825 eth
+      // collective fee is 5% = 0.05 eth
+      // owner will get 0.775 eth
 
       const royaltiesRecipientBalance1 = await ethers.provider.getBalance(
         royaltiesRecipient.address
       );
       const feeBalance1 = await ethers.provider.getBalance(FEE_RECIPIENT);
+      const collectiveRecipientBalance1 = await ethers.provider.getBalance(
+        collectiveRecipient.address
+      );
 
       const { r, s, v } = await getSaleSignature({});
 
@@ -328,6 +349,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: ZERO_ADDRESS,
           expiresAt: 2000994705,
         },
@@ -352,7 +375,7 @@ describe('EndemicSale', () => {
 
       const user1Balance2 = await ethers.provider.getBalance(user1.address);
       expect(user1Balance2.sub(user1Balance1)).to.equal(
-        ethers.utils.parseEther('0.825')
+        ethers.utils.parseEther('0.775')
       );
 
       const feeBalance2 = await ethers.provider.getBalance(FEE_RECIPIENT);
@@ -366,6 +389,13 @@ describe('EndemicSale', () => {
       expect(
         royaltiesRecipientBalance2.sub(royaltiesRecipientBalance1)
       ).to.equal(ethers.utils.parseEther('0.15'));
+
+      const collectiveRecipientBalance2 = await ethers.provider.getBalance(
+        collectiveRecipient.address
+      );
+      expect(
+        collectiveRecipientBalance2.sub(collectiveRecipientBalance1)
+      ).to.equal(ethers.utils.parseEther('0.05'));
     });
 
     it('should fail to buy from same sale twice', async function () {
@@ -388,6 +418,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: ZERO_ADDRESS,
           expiresAt: 2000994705,
         },
@@ -416,6 +448,8 @@ describe('EndemicSale', () => {
             takerCut: ONE_ETHER_TAKER_CUT,
             royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+            collectiveRecipient: collectiveRecipient.address,
             buyer: ZERO_ADDRESS,
             expiresAt: 2000994705,
           },
@@ -456,6 +490,8 @@ describe('EndemicSale', () => {
             takerCut: 0,
             royaltiesCut: 0,
             royaltiesRecipient: ZERO_ADDRESS,
+            collectiveCut: 0,
+            collectiveRecipient: ZERO_ADDRESS,
             buyer: ZERO_ADDRESS,
             expiresAt: LAST_YEAR_TIMESTAMP,
           }
@@ -485,6 +521,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: ZERO_ADDRESS,
           expiresAt: 2000994705,
         })
@@ -508,6 +546,8 @@ describe('EndemicSale', () => {
             takerCut: 0,
             royaltiesCut: 0,
             royaltiesRecipient: ZERO_ADDRESS,
+            collectiveCut: 0,
+            collectiveRecipient: ZERO_ADDRESS,
             buyer: ZERO_ADDRESS,
             expiresAt: RANDOM_TIMESTAMP,
           }
@@ -533,6 +573,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: ZERO_ADDRESS,
           expiresAt: 2000994705,
         })
@@ -556,6 +598,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: ZERO_ADDRESS,
           expiresAt: 2000994705,
         })
@@ -580,6 +624,8 @@ describe('EndemicSale', () => {
             takerCut: ONE_ETHER_TAKER_CUT,
             royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+            collectiveRecipient: collectiveRecipient.address,
             buyer: ZERO_ADDRESS,
             expiresAt: RANDOM_TIMESTAMP,
           })
@@ -609,6 +655,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: ZERO_ADDRESS,
           expiresAt: 2000994705,
         })
@@ -623,12 +671,16 @@ describe('EndemicSale', () => {
       // user sends 1.03 eth
       // maker fee is 2.5% = 0.025 eth
       // royalties are 15% = 0.15 eth
-      // owner will get 0.825 eth
+      // collective cut is 5% = 0.05 eth
+      // owner will get 0.775 eth
 
       const royaltiesRecipientBalance1 = await endemicToken.balanceOf(
         royaltiesRecipient.address
       );
       const feeBalance1 = await endemicToken.balanceOf(FEE_RECIPIENT);
+      const collectiveRecipientBalance1 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
 
       const { r, s, v } = await getSaleSignature({
         paymentErc20TokenAddress: endemicToken.address,
@@ -651,6 +703,8 @@ describe('EndemicSale', () => {
         takerCut: ONE_ETHER_TAKER_CUT,
         royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
         royaltiesRecipient: royaltiesRecipient.address,
+        collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+        collectiveRecipient: collectiveRecipient.address,
         buyer: ZERO_ADDRESS,
         expiresAt: 2000994705,
       });
@@ -671,7 +725,7 @@ describe('EndemicSale', () => {
 
       const user1Balance2 = await endemicToken.balanceOf(user1.address);
       expect(user1Balance2.sub(user1Balance1)).to.equal(
-        ethers.utils.parseEther('0.825')
+        ethers.utils.parseEther('0.775')
       );
 
       const feeBalance2 = await endemicToken.balanceOf(FEE_RECIPIENT);
@@ -685,6 +739,13 @@ describe('EndemicSale', () => {
       expect(
         royaltiesRecipientBalance2.sub(royaltiesRecipientBalance1)
       ).to.equal(ethers.utils.parseEther('0.15'));
+
+      const collectiveRecipientBalance2 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
+      expect(
+        collectiveRecipientBalance2.sub(collectiveRecipientBalance1)
+      ).to.equal(ethers.utils.parseEther('0.05'));
     });
 
     it('should fail to buy from same sale twice', async function () {
@@ -707,6 +768,8 @@ describe('EndemicSale', () => {
         takerCut: ONE_ETHER_TAKER_CUT,
         royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
         royaltiesRecipient: royaltiesRecipient.address,
+        collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+        collectiveRecipient: collectiveRecipient.address,
         buyer: ZERO_ADDRESS,
         expiresAt: 2000994705,
       });
@@ -726,6 +789,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: ZERO_ADDRESS,
           expiresAt: 2000994705,
         })
@@ -759,6 +824,8 @@ describe('EndemicSale', () => {
             takerCut: ONE_ETHER_TAKER_CUT,
             royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+            collectiveRecipient: collectiveRecipient.address,
             buyer: owner.address,
             expiresAt: 2000994705,
           },
@@ -794,6 +861,8 @@ describe('EndemicSale', () => {
             takerCut: ONE_ETHER_TAKER_CUT,
             royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+            collectiveRecipient: collectiveRecipient.address,
             buyer: owner.address,
             expiresAt: 2000994705,
           },
@@ -839,6 +908,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: owner.address,
           expiresAt: 2000994705,
         })
@@ -872,6 +943,8 @@ describe('EndemicSale', () => {
           takerCut: ONE_ETHER_TAKER_CUT,
           royaltiesCut: ONE_ETHER_ROYALTY_AMOUNT,
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ONE_ETHER_COLLECTIVE_CUT,
+          collectiveRecipient: collectiveRecipient.address,
           buyer: owner.address,
           expiresAt: 2000994705,
         })

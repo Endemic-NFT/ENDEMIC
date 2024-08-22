@@ -24,6 +24,7 @@ describe('ExchangeReserveAuction', function () {
     user2,
     user3,
     feeRecipient,
+    collectiveRecipient,
     mintApprover,
     collectionAdministrator,
     settler,
@@ -47,6 +48,7 @@ describe('ExchangeReserveAuction', function () {
       user2,
       user3,
       feeRecipient,
+      collectiveRecipient,
       collectionAdministrator,
       mintApprover,
       settler,
@@ -84,7 +86,8 @@ describe('ExchangeReserveAuction', function () {
     takerFeePercentage,
     royaltiesPercentage,
     royaltiesRecipient,
-    isBid
+    isBid,
+    collectiveFeePercentage = 500
   ) => {
     var typedMessage;
 
@@ -101,6 +104,8 @@ describe('ExchangeReserveAuction', function () {
         takerFeePercentage: takerFeePercentage,
         royaltiesPercentage: royaltiesPercentage,
         royaltiesRecipient: royaltiesRecipient,
+        collectiveFeePercentage: collectiveFeePercentage,
+        collectiveRecipient: collectiveRecipient.address,
       });
     } else {
       typedMessage = getTypedMessage_reserveBid({
@@ -115,6 +120,8 @@ describe('ExchangeReserveAuction', function () {
         takerFeePercentage: takerFeePercentage,
         royaltiesPercentage: royaltiesPercentage,
         royaltiesRecipient: royaltiesRecipient,
+        collectiveFeePercentage: collectiveFeePercentage,
+        collectiveRecipient: collectiveRecipient.address,
       });
     }
 
@@ -144,7 +151,8 @@ describe('ExchangeReserveAuction', function () {
     makerFeePercentage,
     takerFeePercentage,
     royaltiesPercentage,
-    royaltiesRecipient
+    royaltiesRecipient,
+    collectiveFeePercentage = 500
   ) => {
     const typedMessage = getTypedMessage_reserveApproval({
       chainId: network.config.chainId,
@@ -162,6 +170,8 @@ describe('ExchangeReserveAuction', function () {
       takerFeePercentage: takerFeePercentage,
       royaltiesPercentage: royaltiesPercentage,
       royaltiesRecipient: royaltiesRecipient,
+      collectiveFeePercentage: collectiveFeePercentage,
+      collectiveRecipient: collectiveRecipient.address,
     });
 
     const signature = await approvedSigner._signTypedData(
@@ -210,6 +220,10 @@ describe('ExchangeReserveAuction', function () {
 
     it('should be able to finalize reserve auction', async function () {
       const user1Bal1 = await endemicToken.balanceOf(user1.address);
+
+      const collectiveRecipientBal1 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
 
       await endemicToken.transfer(
         user2.address,
@@ -276,13 +290,27 @@ describe('ExchangeReserveAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 500,
+          collectiveRecipient: collectiveRecipient.address,
         }
       );
 
-      // User1 should receive 100 wei, fee is zero
+      // Price: 0.1 ETH
+      // Maker cut: 0%
+      // Royalties cut: 15% of 0.1 ETH = 0.015 ETH
+      // Collective cut: 5% of 0.1 ETH = 0.005 ETH
+      // Seller gets: 0.1 - 0.015 - 0.005 = 0.08 ETH
+
       const user1Bal2 = await endemicToken.balanceOf(user1.address);
       const user1Diff = user1Bal2.sub(user1Bal1);
-      expect(user1Diff.toString()).to.equal(ethers.utils.parseUnits('0.085'));
+      expect(user1Diff.toString()).to.equal(ethers.utils.parseUnits('0.08'));
+
+      const collectiveRecipientBal2 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
+      expect(collectiveRecipientBal2.sub(collectiveRecipientBal1)).to.equal(
+        ethers.utils.parseUnits('0.005')
+      );
 
       // Bidder should own NFT
       const tokenOwner = await nftContract.ownerOf(1);
@@ -320,6 +348,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, INVALID_PAYMENT_METHOD);
@@ -354,6 +384,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, INVALID_PAYMENT_METHOD);
@@ -436,6 +468,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'InvalidSignature');
@@ -500,6 +534,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'InvalidSignature');
@@ -535,6 +571,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'InvalidConfiguration');
@@ -598,6 +636,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'InvalidSignature');
@@ -661,6 +701,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'InvalidSignature');
@@ -694,6 +736,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'InvalidSignature');
@@ -757,6 +801,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'InvalidSignature');
@@ -829,6 +875,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(
@@ -906,6 +954,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'NonceUsed');
@@ -980,6 +1030,8 @@ describe('ExchangeReserveAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
           }
         )
       ).to.be.revertedWithCustomError(endemicExchange, 'NonceUsed');
@@ -1012,7 +1064,8 @@ describe('ExchangeReserveAuction', function () {
         300,
         1500,
         owner.address,
-        false
+        false,
+        0
       );
 
       const user1Bal1 = await endemicToken.balanceOf(user1.address);
@@ -1040,7 +1093,8 @@ describe('ExchangeReserveAuction', function () {
         300,
         1500,
         owner.address,
-        true
+        true,
+        0
       );
 
       const approvalSig = await getReserveAuctionApprovalSignature(
@@ -1055,7 +1109,8 @@ describe('ExchangeReserveAuction', function () {
         250,
         300,
         1500,
-        owner.address
+        owner.address,
+        0
       );
 
       await endemicExchange.connect(settler).finalizeReserveAuction(
@@ -1086,6 +1141,8 @@ describe('ExchangeReserveAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
         }
       );
 
@@ -1117,7 +1174,8 @@ describe('ExchangeReserveAuction', function () {
         300,
         1500,
         owner.address,
-        false
+        false,
+        0
       );
 
       await endemicToken.transfer(
@@ -1143,7 +1201,8 @@ describe('ExchangeReserveAuction', function () {
         300,
         1500,
         owner.address,
-        true
+        true,
+        0
       );
 
       const approvalSig = await getReserveAuctionApprovalSignature(
@@ -1158,7 +1217,8 @@ describe('ExchangeReserveAuction', function () {
         250,
         300,
         1500,
-        owner.address
+        owner.address,
+        0
       );
 
       await endemicExchange.connect(settler).finalizeReserveAuction(
@@ -1189,6 +1249,8 @@ describe('ExchangeReserveAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
         }
       );
 
@@ -1208,7 +1270,8 @@ describe('ExchangeReserveAuction', function () {
         300,
         1500,
         owner.address,
-        false
+        false,
+        0
       );
 
       await endemicToken.transfer(
@@ -1234,7 +1297,8 @@ describe('ExchangeReserveAuction', function () {
         300,
         1500,
         owner.address,
-        true
+        true,
+        0
       );
 
       const approvalSig2 = await getReserveAuctionApprovalSignature(
@@ -1249,7 +1313,8 @@ describe('ExchangeReserveAuction', function () {
         250,
         300,
         1500,
-        owner.address
+        owner.address,
+        0
       );
 
       // Grab current balance
@@ -1284,6 +1349,8 @@ describe('ExchangeReserveAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
         }
       );
 
@@ -1331,7 +1398,8 @@ describe('ExchangeReserveAuction', function () {
         300,
         1000,
         feeRecipient.address,
-        false
+        false,
+        0
       );
 
       // 22% of 0.2 + 3% fee
@@ -1374,7 +1442,8 @@ describe('ExchangeReserveAuction', function () {
         300,
         1000,
         feeRecipient.address,
-        true
+        true,
+        0
       );
 
       const approvalSig = await getReserveAuctionApprovalSignature(
@@ -1389,7 +1458,8 @@ describe('ExchangeReserveAuction', function () {
         250,
         300,
         1000,
-        feeRecipient.address
+        feeRecipient.address,
+        0
       );
 
       await endemicExchange.connect(settler).finalizeReserveAuction(
@@ -1420,6 +1490,8 @@ describe('ExchangeReserveAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1000,
           royaltiesRecipient: feeRecipient.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
         }
       );
 

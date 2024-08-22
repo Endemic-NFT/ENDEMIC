@@ -18,17 +18,17 @@ abstract contract EndemicReserveAuction is
 
     bytes32 private constant RESERVE_AUCTION_TYPEHASH =
         keccak256(
-            "ReserveAuction(uint256 orderNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 price,uint256 makerFeePercentage,uint256 takerFeePercentage,uint256 royaltiesPercentage,address royaltiesRecipient)"
+            "ReserveAuction(uint256 orderNonce,uint256 price,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 makerFeePercentage,uint256 takerFeePercentage,uint256 royaltiesPercentage,address royaltiesRecipient,uint256 collectiveFeePercentage,address collectiveRecipient)"
         );
 
     bytes32 private constant RESERVE_AUCTION_BID_TYPEHASH =
         keccak256(
-            "ReserveAuctionBid(uint256 orderNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 price,uint256 makerFeePercentage,uint256 takerFeePercentage,uint256 royaltiesPercentage,address royaltiesRecipient)"
+            "ReserveAuctionBid(uint256 orderNonce,uint256 price,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 makerFeePercentage,uint256 takerFeePercentage,uint256 royaltiesPercentage,address royaltiesRecipient,uint256 collectiveFeePercentage,address collectiveRecipient)"
         );
 
     bytes32 private constant RESERVE_AUCTION_APPROVAL_TYPEHASH =
         keccak256(
-            "ReserveAuctionApproval(address auctionSigner,address bidSigner,uint256 auctionNonce,uint256 bidNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 auctionPrice,uint256 bidPrice,uint256 makerFeePercentage,uint256 takerFeePercentage,uint256 royaltiesPercentage,address royaltiesRecipient)"
+            "ReserveAuctionApproval(address auctionSigner,address bidSigner,uint256 auctionNonce,uint256 bidNonce,uint256 auctionPrice,uint256 bidPrice,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 makerFeePercentage,uint256 takerFeePercentage,uint256 royaltiesPercentage,address royaltiesRecipient,uint256 collectiveFeePercentage,address collectiveRecipient)"
         );
 
     struct ReserveAuction {
@@ -48,6 +48,8 @@ abstract contract EndemicReserveAuction is
         uint256 takerFeePercentage;
         uint256 royaltiesPercentage;
         address royaltiesRecipient;
+        uint256 collectiveFeePercentage;
+        address collectiveRecipient;
     }
 
     function finalizeReserveAuction(
@@ -73,17 +75,13 @@ abstract contract EndemicReserveAuction is
             revert UnsufficientCurrencySupplied();
         }
 
-        (
-            uint256 makerCut,
-            ,
-            uint256 royaltiesCut,
-            uint256 totalCut
-        ) = _calculateFees(
-                bidPrice,
-                info.makerFeePercentage,
-                info.takerFeePercentage,
-                info.royaltiesPercentage
-            );
+        Fees memory fees = _calculateFees(
+            bidPrice,
+            info.makerFeePercentage,
+            info.takerFeePercentage,
+            info.royaltiesPercentage,
+            info.collectiveFeePercentage
+        );
 
         _invalidateNonce(auction.signer, auction.orderNonce);
         _invalidateNonce(bid.signer, bid.orderNonce);
@@ -96,10 +94,12 @@ abstract contract EndemicReserveAuction is
 
         _distributeFunds(
             bidPrice,
-            makerCut,
-            totalCut,
-            royaltiesCut,
+            fees.makerCut,
+            fees.totalCut,
+            fees.royaltiesCut,
             info.royaltiesRecipient,
+            fees.collectiveCut,
+            info.collectiveRecipient,
             auction.signer,
             bid.signer,
             info.paymentErc20TokenAddress
@@ -111,7 +111,7 @@ abstract contract EndemicReserveAuction is
             bidPrice,
             auction.signer,
             bid.signer,
-            totalCut,
+            fees.totalCut,
             info.paymentErc20TokenAddress
         );
     }
@@ -126,18 +126,7 @@ abstract contract EndemicReserveAuction is
                 "\x19\x01",
                 _buildDomainSeparator(),
                 keccak256(
-                    abi.encode(
-                        typehash,
-                        data.orderNonce,
-                        info.nftContract,
-                        info.tokenId,
-                        info.paymentErc20TokenAddress,
-                        data.price,
-                        info.makerFeePercentage,
-                        info.takerFeePercentage,
-                        info.royaltiesPercentage,
-                        info.royaltiesRecipient
-                    )
+                    abi.encode(typehash, data.orderNonce, data.price, info)
                 )
             )
         );
@@ -162,15 +151,9 @@ abstract contract EndemicReserveAuction is
                 bid.signer,
                 auction.orderNonce,
                 bid.orderNonce,
-                info.nftContract,
-                info.tokenId,
-                info.paymentErc20TokenAddress,
                 auction.price,
                 bid.price,
-                info.makerFeePercentage,
-                info.takerFeePercentage,
-                info.royaltiesPercentage,
-                info.royaltiesRecipient
+                info
             )
         );
 

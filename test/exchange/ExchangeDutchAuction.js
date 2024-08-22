@@ -34,6 +34,7 @@ describe('ExchangeDutchAuction', function () {
     user2,
     user3,
     feeRecipient,
+    collectiveRecipient,
     collectionAdministrator,
     mintApprover;
 
@@ -55,6 +56,7 @@ describe('ExchangeDutchAuction', function () {
       user2,
       user3,
       feeRecipient,
+      collectiveRecipient,
       collectionAdministrator,
       mintApprover,
     ] = await ethers.getSigners();
@@ -90,7 +92,8 @@ describe('ExchangeDutchAuction', function () {
     makerFeePercentage = 0,
     takerFeePercentage = 300,
     royaltiesPercentage = 1500,
-    royaltiesRecipient = owner.address
+    royaltiesRecipient = owner.address,
+    collectiveFeePercentage = 500
   ) => {
     const typedMessage = getTypedMessage_dutch({
       chainId: network.config.chainId,
@@ -105,6 +108,8 @@ describe('ExchangeDutchAuction', function () {
       takerFeePercentage: takerFeePercentage,
       royaltiesPercentage: royaltiesPercentage,
       royaltiesRecipient: royaltiesRecipient,
+      collectiveFeePercentage: collectiveFeePercentage,
+      collectiveRecipient: collectiveRecipient.address,
       startingAt: startingAt,
       duration: duration,
     });
@@ -162,6 +167,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp + 50,
             duration: 120,
           })
@@ -183,6 +190,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           })
@@ -204,6 +213,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           })
@@ -235,6 +246,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           })
@@ -259,6 +272,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           },
@@ -303,6 +318,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           },
@@ -329,6 +346,8 @@ describe('ExchangeDutchAuction', function () {
       await helpers.time.increase(800);
 
       const user1Bal1 = await user1.getBalance();
+
+      const collectiveRecipientBal1 = await collectiveRecipient.getBalance();
 
       //   totalPriceChange = 0.2 - 1.4 = -1.2
       //   currentPriceChange = (totalPriceChange * 800) / 1000 = -0.96
@@ -359,6 +378,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 500,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         },
@@ -367,10 +388,18 @@ describe('ExchangeDutchAuction', function () {
         }
       );
 
-      // User1 should receive 0.373232 ether, 80% of auction has passed
+      // 80% of auction has passed
       const user1Bal2 = await user1.getBalance();
       const user1Diff = user1Bal2.sub(user1Bal1);
-      expect(user1Diff.toString()).to.lte(ethers.utils.parseUnits('0.375'));
+      expect(user1Diff.toString())
+        .to.lte(ethers.utils.parseUnits('0.353'))
+        .but.gte(ethers.utils.parseUnits('0.352'));
+
+      // 5% of 0.44 = 0.022 ether
+      const collectiveRecipientBal2 = await collectiveRecipient.getBalance();
+      expect(collectiveRecipientBal2.sub(collectiveRecipientBal1))
+        .to.lte(ethers.utils.parseUnits('0.022'))
+        .but.gte(ethers.utils.parseUnits('0.021'));
 
       // Bidder should own NFT
       const tokenOwner = await nftContract.ownerOf(1);
@@ -381,6 +410,8 @@ describe('ExchangeDutchAuction', function () {
       await helpers.time.increase(200);
 
       const user1Bal1 = await user1.getBalance();
+
+      const collectiveRecipientBal1 = await collectiveRecipient.getBalance();
 
       const auction1CurrentPrice = await endemicExchange.getCurrentPrice(
         ethers.utils.parseUnits('0.1'),
@@ -407,6 +438,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 500,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: defaultTimestamp,
           duration: 120,
         },
@@ -419,7 +452,13 @@ describe('ExchangeDutchAuction', function () {
 
       const user1Bal2 = await user1.getBalance();
       const user1Diff = user1Bal2.sub(user1Bal1);
-      expect(user1Diff.toString()).to.equal(ethers.utils.parseUnits('0.0085'));
+      expect(user1Diff.toString()).to.equal(ethers.utils.parseUnits('0.008'));
+
+      // 5% of 0.1 = 0.0005 ether
+      const collectiveRecipientBal2 = await collectiveRecipient.getBalance();
+      expect(collectiveRecipientBal2.sub(collectiveRecipientBal1)).to.equal(
+        ethers.utils.parseUnits('0.0005')
+      );
 
       // 0.1 = seller proceeds if we don't forward all sent ethers to seller and fee receipients
       // now we forward all funds in case of ether payments => seller get few percent more than before in case of ether
@@ -453,6 +492,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 500,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: defaultTimestamp,
           duration: 120,
         },
@@ -516,6 +557,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: timestamp,
             duration: 1000,
           },
@@ -573,6 +616,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp + 50,
             duration: 120,
           })
@@ -594,6 +639,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           })
@@ -615,6 +662,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           })
@@ -646,6 +695,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           })
@@ -667,6 +718,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           })
@@ -713,6 +766,8 @@ describe('ExchangeDutchAuction', function () {
             takerFeePercentage: 300,
             royaltiesPercentage: 1500,
             royaltiesRecipient: owner.address,
+            collectiveFeePercentage: 500,
+            collectiveRecipient: collectiveRecipient.address,
             startingAt: defaultTimestamp,
             duration: 120,
           })
@@ -735,6 +790,10 @@ describe('ExchangeDutchAuction', function () {
       await helpers.time.increase(800);
 
       const user1Bal1 = await endemicToken.balanceOf(user1.address);
+
+      const collectiveRecipientBal1 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
 
       //   totalPriceChange = 0.2 - 1.4 = -1.2
       //   currentPriceChange = (totalPriceChange * 800) / 1000 = -0.96
@@ -774,15 +833,24 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 500,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         });
 
-      // User1 should receive 0.39492 ether, 80% of auction has passed
-
+      // 80% of auction has passed
       const user1Bal2 = await endemicToken.balanceOf(user1.address);
       const user1Diff = user1Bal2.sub(user1Bal1);
-      expect(user1Diff.toString()).to.equal(ethers.utils.parseUnits('0.37094'));
+      expect(user1Diff.toString()).to.equal(ethers.utils.parseUnits('0.34912'));
+
+      // 5% of 0.4364 = 0.02182
+      const collectiveRecipientBal2 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
+      expect(collectiveRecipientBal2.sub(collectiveRecipientBal1)).to.equal(
+        ethers.utils.parseUnits('0.02182')
+      );
 
       // Bidder should own NFT
       const tokenOwner = await nftContract.ownerOf(1);
@@ -793,6 +861,10 @@ describe('ExchangeDutchAuction', function () {
       await helpers.time.increase(200);
 
       const user1Bal1 = await endemicToken.balanceOf(user1.address);
+
+      const collectiveRecipientBal1 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
 
       const auction1CurrentPrice = await endemicExchange.getCurrentPrice(
         ethers.utils.parseUnits('0.1'),
@@ -825,6 +897,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 500,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: defaultTimestamp,
           duration: 120,
         });
@@ -833,7 +907,15 @@ describe('ExchangeDutchAuction', function () {
 
       const user1Bal2 = await endemicToken.balanceOf(user1.address);
       const user1Diff = user1Bal2.sub(user1Bal1);
-      expect(user1Diff.toString()).to.equal(ethers.utils.parseUnits('0.0085'));
+      expect(user1Diff.toString()).to.equal(ethers.utils.parseUnits('0.008'));
+
+      // 5% of 0.1 = 0.0005 ether
+      const collectiveRecipientBal2 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
+      expect(collectiveRecipientBal2.sub(collectiveRecipientBal1)).to.equal(
+        ethers.utils.parseUnits('0.0005')
+      );
     });
 
     it('should trigger an event after successful bid', async function () {
@@ -869,6 +951,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 500,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: defaultTimestamp,
           duration: 120,
         });
@@ -906,7 +990,11 @@ describe('ExchangeDutchAuction', function () {
         ethers.utils.parseUnits('0.2'),
         timestamp,
         1000,
-        250
+        250,
+        300,
+        1500,
+        owner.address,
+        0
       );
 
       const user1Bal1 = await user1.getBalance();
@@ -944,6 +1032,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         },
@@ -999,7 +1089,11 @@ describe('ExchangeDutchAuction', function () {
         ethers.utils.parseUnits('0.2'),
         timestamp,
         1000,
-        250
+        250,
+        300,
+        1500,
+        owner.address,
+        0
       );
 
       await helpers.time.increase(800);
@@ -1036,6 +1130,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         },
@@ -1059,7 +1155,11 @@ describe('ExchangeDutchAuction', function () {
         ethers.utils.parseUnits('0.5'),
         timestamp2,
         1200,
-        250
+        250,
+        300,
+        1500,
+        owner.address,
+        0
       );
 
       await helpers.time.increase(1140);
@@ -1102,6 +1202,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp2,
           duration: 1200,
         },
@@ -1170,7 +1272,11 @@ describe('ExchangeDutchAuction', function () {
         ethers.utils.parseUnits('0.2'),
         timestamp,
         1000,
-        250
+        250,
+        300,
+        1500,
+        owner.address,
+        0
       );
 
       //   totalPriceChange = 0.2 - 1.4 = -1.2
@@ -1217,6 +1323,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         });
@@ -1262,7 +1370,10 @@ describe('ExchangeDutchAuction', function () {
         timestamp,
         1000,
         500,
-        500
+        500,
+        1500,
+        owner.address,
+        0
       );
 
       //   totalPriceChange = 0.2 - 1.4 = -1.2
@@ -1309,6 +1420,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 500,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         });
@@ -1345,7 +1458,11 @@ describe('ExchangeDutchAuction', function () {
         ethers.utils.parseUnits('0.2'),
         timestamp,
         1000,
-        250
+        250,
+        300,
+        1500,
+        owner.address,
+        0
       );
 
       await helpers.time.increase(800);
@@ -1391,6 +1508,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         });
@@ -1410,7 +1529,11 @@ describe('ExchangeDutchAuction', function () {
         ethers.utils.parseUnits('0.5'),
         timestamp2,
         1200,
-        250
+        250,
+        300,
+        1500,
+        owner.address,
+        0
       );
 
       // Grab current balance
@@ -1460,6 +1583,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1500,
           royaltiesRecipient: owner.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp2,
           duration: 1200,
         });
@@ -1514,7 +1639,8 @@ describe('ExchangeDutchAuction', function () {
         250,
         300,
         1000,
-        feeRecipient.address
+        feeRecipient.address,
+        0
       );
 
       await helpers.time.increase(800);
@@ -1558,6 +1684,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1000,
           royaltiesRecipient: feeRecipient.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         },
@@ -1623,7 +1751,8 @@ describe('ExchangeDutchAuction', function () {
         250,
         300,
         1000,
-        feeRecipient.address
+        feeRecipient.address,
+        0
       );
 
       await helpers.time.increase(800);
@@ -1676,6 +1805,8 @@ describe('ExchangeDutchAuction', function () {
           takerFeePercentage: 300,
           royaltiesPercentage: 1000,
           royaltiesRecipient: feeRecipient.address,
+          collectiveFeePercentage: 0,
+          collectiveRecipient: collectiveRecipient.address,
           startingAt: timestamp,
           duration: 1000,
         });

@@ -29,6 +29,7 @@ describe('ExchangeOffer', function () {
     user1,
     user2,
     royaltiesRecipient,
+    collectiveRecipient,
     collectionAdministrator,
     mintApprover;
 
@@ -39,6 +40,7 @@ describe('ExchangeOffer', function () {
     makerCut,
     takerCut,
     royaltiesCut,
+    collectiveCut,
     expiresAt,
     isForCollection
   ) => {
@@ -54,6 +56,8 @@ describe('ExchangeOffer', function () {
       takerCut: takerCut,
       royaltiesCut: royaltiesCut,
       royaltiesRecipient: royaltiesRecipient.address,
+      collectiveCut: collectiveCut,
+      collectiveRecipient: collectiveRecipient.address,
       expiresAt: expiresAt,
       isForCollection: isForCollection,
     });
@@ -90,6 +94,7 @@ describe('ExchangeOffer', function () {
       user2,
       user2,
       royaltiesRecipient,
+      collectiveRecipient,
       collectionAdministrator,
       mintApprover,
     ] = await ethers.getSigners();
@@ -142,12 +147,16 @@ describe('ExchangeOffer', function () {
       // owner of nft sees offer with 0.5 eth
       // maker sale fee is 3% = 0.015 eth
       // royalties are 10% 0.05
-      // owner will get 0.435 ETH
+      // collective cut is 5% = 0.025 eth
+      // owner will get 0.41 ETH
       // total fee is 0.030
       const royaltiesRecipientBalance1 = await endemicToken.balanceOf(
         royaltiesRecipient.address
       );
       const feeBalance1 = await endemicToken.balanceOf(FEE_RECIPIENT);
+      const collectiveRecipientBalance1 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
 
       await endemicToken.transfer(
         user2.address,
@@ -165,6 +174,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         false
       );
@@ -184,6 +194,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.015'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 2000994705,
           isForCollection: false,
         });
@@ -204,7 +216,7 @@ describe('ExchangeOffer', function () {
 
       const user1Balance2 = await endemicToken.balanceOf(user1.address);
       expect(user1Balance2.sub(user1Balance1)).to.equal(
-        ethers.utils.parseUnits('0.435')
+        ethers.utils.parseUnits('0.41')
       );
 
       const feeBalance2 = await endemicToken.balanceOf(FEE_RECIPIENT);
@@ -218,6 +230,13 @@ describe('ExchangeOffer', function () {
       expect(
         royaltiesRecipientBalance2.sub(royaltiesRecipientBalance1)
       ).to.equal(ethers.utils.parseUnits('0.05'));
+
+      const collectiveRecipientBalance2 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
+      expect(
+        collectiveRecipientBalance2.sub(collectiveRecipientBalance1)
+      ).to.equal(ethers.utils.parseUnits('0.025'));
     });
 
     it('should be able to accept offer with different fees for specific ERC20', async () => {
@@ -229,12 +248,16 @@ describe('ExchangeOffer', function () {
       // owner of nft sees offer with 0.5 eth
       // maker sale fee is 5% = 0.025 eth
       // royalties are 10% 0.05
-      // owner will get 0.425 ETH
+      // collective cut is 5% = 0.025 eth
+      // owner will get 0.4 ETH
       // total fee is 0.05
       const royaltiesRecipientBalance1 = await endemicToken.balanceOf(
         royaltiesRecipient.address
       );
       const feeBalance1 = await endemicToken.balanceOf(FEE_RECIPIENT);
+      const collectiveRecipientBalance1 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
 
       await endemicToken.transfer(
         user2.address,
@@ -252,6 +275,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.025'),
         ethers.utils.parseEther('0.025'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         false
       );
@@ -271,6 +295,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.025'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 2000994705,
           isForCollection: false,
         });
@@ -291,7 +317,7 @@ describe('ExchangeOffer', function () {
 
       const user1Balance2 = await endemicToken.balanceOf(user1.address);
       expect(user1Balance2.sub(user1Balance1)).to.equal(
-        ethers.utils.parseUnits('0.425')
+        ethers.utils.parseUnits('0.4')
       );
 
       const feeBalance2 = await endemicToken.balanceOf(FEE_RECIPIENT);
@@ -305,6 +331,13 @@ describe('ExchangeOffer', function () {
       expect(
         royaltiesRecipientBalance2.sub(royaltiesRecipientBalance1)
       ).to.equal(ethers.utils.parseUnits('0.05'));
+
+      const collectiveRecipientBalance2 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
+      expect(
+        collectiveRecipientBalance2.sub(collectiveRecipientBalance1)
+      ).to.equal(ethers.utils.parseUnits('0.025'));
     });
 
     it('should fail to accept offer that is for collection', async () => {
@@ -324,6 +357,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         true
       );
@@ -340,6 +374,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.015'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 2000994705,
           isForCollection: true,
         })
@@ -354,6 +390,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         1658060224,
         false
       );
@@ -370,6 +407,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.015'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 1658060224,
           isForCollection: false,
         })
@@ -384,6 +423,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         false
       );
@@ -402,6 +442,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.015'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 2000994705,
           isForCollection: false,
         })
@@ -423,6 +465,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: false,
           })
@@ -445,6 +489,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: false,
           })
@@ -468,6 +514,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         false
       );
@@ -483,6 +530,8 @@ describe('ExchangeOffer', function () {
         takerCut: ethers.utils.parseEther('0.015'),
         royaltiesCut: ethers.utils.parseEther('0.05'),
         royaltiesRecipient: royaltiesRecipient.address,
+        collectiveCut: ethers.utils.parseEther('0.025'),
+        collectiveRecipient: collectiveRecipient.address,
         expiresAt: 2000994705,
         isForCollection: false,
       });
@@ -499,6 +548,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.015'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 2000994705,
           isForCollection: false,
         })
@@ -513,6 +564,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         false
       );
@@ -529,6 +581,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.015'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 2000994705,
           isForCollection: false,
         })
@@ -543,6 +597,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         false
       );
@@ -559,6 +614,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.015'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 2000994705,
           isForCollection: false,
         })
@@ -587,12 +644,16 @@ describe('ExchangeOffer', function () {
       // owner of nft sees offer with 0.5 eth
       // maker sale fee is 3% = 0.015 eth
       // royalties are 10% 0.05
-      // owner will get 0.435 ETH
+      // collective cut is 5% = 0.025 eth
+      // owner will get 0.41 ETH
       // total fee is 0.030
       const royaltiesRecipientBalance1 = await endemicToken.balanceOf(
         royaltiesRecipient.address
       );
       const feeBalance1 = await endemicToken.balanceOf(FEE_RECIPIENT);
+      const collectiveRecipientBalance1 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
 
       await endemicToken.transfer(
         user2.address,
@@ -610,6 +671,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         true
       );
@@ -633,6 +695,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: true,
           },
@@ -655,7 +719,7 @@ describe('ExchangeOffer', function () {
 
       const user1Balance2 = await endemicToken.balanceOf(user1.address);
       expect(user1Balance2.sub(user1Balance1)).to.equal(
-        ethers.utils.parseUnits('0.435')
+        ethers.utils.parseUnits('0.41')
       );
 
       const feeBalance2 = await endemicToken.balanceOf(FEE_RECIPIENT);
@@ -669,6 +733,13 @@ describe('ExchangeOffer', function () {
       expect(
         royaltiesRecipientBalance2.sub(royaltiesRecipientBalance1)
       ).to.equal(ethers.utils.parseUnits('0.05'));
+
+      const collectiveRecipientBalance2 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
+      expect(
+        collectiveRecipientBalance2.sub(collectiveRecipientBalance1)
+      ).to.equal(ethers.utils.parseUnits('0.025'));
     });
 
     it('should be able to accept offer with different fees for specific ERC20', async () => {
@@ -680,12 +751,16 @@ describe('ExchangeOffer', function () {
       // owner of nft sees offer with 0.5 eth
       // maker sale fee is 5% = 0.025 eth
       // royalties are 10% 0.05
-      // owner will get 0.425 ETH
+      // collective cut is 5% = 0.025 eth
+      // owner will get 0.4 ETH
       // total fee is 0.05
       const royaltiesRecipientBalance1 = await endemicToken.balanceOf(
         royaltiesRecipient.address
       );
       const feeBalance1 = await endemicToken.balanceOf(FEE_RECIPIENT);
+      const collectiveRecipientBalance1 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
 
       await endemicToken.transfer(
         user2.address,
@@ -703,6 +778,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.025'),
         ethers.utils.parseEther('0.025'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         true
       );
@@ -726,6 +802,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.025'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: true,
           },
@@ -748,7 +826,7 @@ describe('ExchangeOffer', function () {
 
       const user1Balance2 = await endemicToken.balanceOf(user1.address);
       expect(user1Balance2.sub(user1Balance1)).to.equal(
-        ethers.utils.parseUnits('0.425')
+        ethers.utils.parseUnits('0.4')
       );
 
       const feeBalance2 = await endemicToken.balanceOf(FEE_RECIPIENT);
@@ -762,6 +840,13 @@ describe('ExchangeOffer', function () {
       expect(
         royaltiesRecipientBalance2.sub(royaltiesRecipientBalance1)
       ).to.equal(ethers.utils.parseUnits('0.05'));
+
+      const collectiveRecipientBalance2 = await endemicToken.balanceOf(
+        collectiveRecipient.address
+      );
+      expect(
+        collectiveRecipientBalance2.sub(collectiveRecipientBalance1)
+      ).to.equal(ethers.utils.parseUnits('0.025'));
     });
 
     it('should fail to accept offer that is for nft', async () => {
@@ -781,6 +866,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         false
       );
@@ -801,6 +887,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: false,
           },
@@ -817,6 +905,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         1658060224,
         true
       );
@@ -837,6 +926,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 1658060224,
             isForCollection: true,
           },
@@ -853,6 +944,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         true
       );
@@ -875,6 +967,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: true,
           },
@@ -900,6 +994,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: true,
           },
@@ -926,6 +1022,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: true,
           },
@@ -951,6 +1049,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         true
       );
@@ -970,6 +1069,8 @@ describe('ExchangeOffer', function () {
           takerCut: ethers.utils.parseEther('0.015'),
           royaltiesCut: ethers.utils.parseEther('0.05'),
           royaltiesRecipient: royaltiesRecipient.address,
+          collectiveCut: ethers.utils.parseEther('0.025'),
+          collectiveRecipient: collectiveRecipient.address,
           expiresAt: 2000994705,
           isForCollection: true,
         },
@@ -992,6 +1093,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: true,
           },
@@ -1008,6 +1111,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         true
       );
@@ -1028,6 +1132,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: true,
           },
@@ -1044,6 +1150,7 @@ describe('ExchangeOffer', function () {
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.015'),
         ethers.utils.parseEther('0.05'),
+        ethers.utils.parseEther('0.025'),
         2000994705,
         true
       );
@@ -1064,6 +1171,8 @@ describe('ExchangeOffer', function () {
             takerCut: ethers.utils.parseEther('0.015'),
             royaltiesCut: ethers.utils.parseEther('0.05'),
             royaltiesRecipient: royaltiesRecipient.address,
+            collectiveCut: ethers.utils.parseEther('0.025'),
+            collectiveRecipient: collectiveRecipient.address,
             expiresAt: 2000994705,
             isForCollection: true,
           },

@@ -21,7 +21,7 @@ abstract contract EndemicOffer is
 
     bytes32 private constant OFFER_TYPEHASH =
         keccak256(
-            "Offer(uint256 orderNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 price,uint256 makerCut,uint256 takerCut,uint256 royaltiesCut,address royaltiesRecipient,uint256 expiresAt,bool isForCollection)"
+            "Offer(uint256 orderNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 price,uint256 makerCut,uint256 takerCut,uint256 royaltiesCut,address royaltiesRecipient,uint256 collectiveCut,address collectiveRecipient,uint256 expiresAt,bool isForCollection)"
         );
 
     struct Offer {
@@ -35,6 +35,8 @@ abstract contract EndemicOffer is
         uint256 takerCut;
         uint256 royaltiesCut;
         address royaltiesRecipient;
+        uint256 collectiveCut;
+        address collectiveRecipient;
         uint256 expiresAt;
         bool isForCollection;
     }
@@ -111,6 +113,8 @@ abstract contract EndemicOffer is
             totalCut,
             offer.royaltiesCut,
             offer.royaltiesRecipient,
+            offer.collectiveCut,
+            offer.collectiveRecipient,
             msg.sender,
             offer.bidder,
             offer.paymentErc20TokenAddress
@@ -149,6 +153,8 @@ abstract contract EndemicOffer is
                         offer.takerCut,
                         offer.royaltiesCut,
                         offer.royaltiesRecipient,
+                        offer.collectiveCut,
+                        offer.collectiveRecipient,
                         offer.expiresAt,
                         offer.isForCollection
                     )
