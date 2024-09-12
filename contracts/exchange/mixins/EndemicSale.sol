@@ -21,7 +21,7 @@ abstract contract EndemicSale is
 
     bytes32 private constant SALE_TYPEHASH =
         keccak256(
-            "Sale(uint256 orderNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 price,uint256 makerCut,uint256 takerCut,uint256 royaltiesCut,address royaltiesRecipient,address buyer,uint256 expiresAt)"
+            "Sale(uint256 orderNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 price,uint256 makerCut,uint256 takerCut,uint256 royaltiesCut,address royaltiesRecipient,uint256 collectiveCut,address collectiveRecipient,address buyer,uint256 expiresAt)"
         );
 
     struct Sale {
@@ -35,6 +35,8 @@ abstract contract EndemicSale is
         uint256 takerCut;
         uint256 royaltiesCut;
         address royaltiesRecipient;
+        uint256 collectiveCut;
+        address collectiveRecipient;
         address buyer;
         uint256 expiresAt;
     }
@@ -95,6 +97,8 @@ abstract contract EndemicSale is
             totalCut,
             sale.royaltiesCut,
             sale.royaltiesRecipient,
+            sale.collectiveCut,
+            sale.collectiveRecipient,
             sale.seller,
             msg.sender,
             sale.paymentErc20TokenAddress
@@ -133,6 +137,8 @@ abstract contract EndemicSale is
                         sale.takerCut,
                         sale.royaltiesCut,
                         sale.royaltiesRecipient,
+                        sale.collectiveCut,
+                        sale.collectiveRecipient,
                         sale.buyer,
                         sale.expiresAt
                     )
