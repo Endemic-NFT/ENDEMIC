@@ -5,7 +5,7 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "size": "npx hardhat size-contracts",
-    "coverage": "npx hardhat coverage --network hardhat",
+    "coverage": "npx hardhat coverage",
     "lint": "eslint \"{test,scripts}/**/*.js\" --fix",
     "lint:sol": "solhint 'contracts/**/*.sol'"
   },
