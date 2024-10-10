@@ -16,9 +16,11 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
      * @notice Stakes tokens in the liquid pool
      * @param amount The amount of tokens to stake
      */
-    function liquidStake(
-        uint256 amount
-    ) external onlySufficientAmount(amount) nonReentrant {
+    function liquidStake(uint256 amount)
+        external
+        onlySufficientAmount(amount)
+        nonReentrant
+    {
         Stake memory stakeInfo = stakes[msg.sender];
 
         stakes[msg.sender] = Stake({
@@ -35,9 +37,11 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
      * @notice Immediately withdraws staked tokens and pays grace period removal fee
      * @param amount The amount of tokens to withdraw
      */
-    function withdraw(
-        uint256 amount
-    ) external onlySufficientAmount(amount) nonReentrant {
+    function withdrawImmediately(uint256 amount)
+        external
+        onlySufficientAmount(amount)
+        nonReentrant
+    {
         Stake memory stakeInfo = stakes[msg.sender];
 
         uint256 availableToWithdraw = stakeInfo.amount;
@@ -84,9 +88,11 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
      * @notice Locks tokens
      * @param amount The amount of tokens to lock
      */
-    function lock(
-        uint256 amount
-    ) external onlySufficientAmount(amount) nonReentrant {
+    function lock(uint256 amount)
+        external
+        onlySufficientAmount(amount)
+        nonReentrant
+    {
         Lock memory lockInfo = locks[msg.sender];
 
         if (lockInfo.amount > 0) {
@@ -108,9 +114,11 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
      * @notice Immediately withdraws unlocked tokens and pays grace period removal fee
      * @param amount The amount of tokens to unlock
      */
-    function unlock(
-        uint256 amount
-    ) external onlySufficientAmount(amount) nonReentrant {
+    function unlockImmediately(uint256 amount)
+        external
+        onlySufficientAmount(amount)
+        nonReentrant
+    {
         Lock memory lockInfo = locks[msg.sender];
 
         _checkUnlockPeriod(lockInfo.lockTime);
@@ -163,9 +171,11 @@ contract LiquidPool is TokenPoolBase, WithdrawalEligibility {
      * @return stakedAmount The amount of tokens staked by the account
      * @return lockedAmount The amount of tokens locked by the account
      */
-    function getLiquidPoolStats(
-        address account
-    ) public view returns (uint256 stakedAmount, uint256 lockedAmount) {
+    function getLiquidPoolStats(address account)
+        public
+        view
+        returns (uint256 stakedAmount, uint256 lockedAmount)
+    {
         stakedAmount = stakes[account].amount;
         lockedAmount = locks[account].amount;
     }
