@@ -103,6 +103,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
 
     function _revertIfLockPeriodNotFinished(uint256 lockPeriodEndTime)
         internal
+        view
     {
         if (block.timestamp < lockPeriodEndTime) {
             revert LockPeriodNotFinished();
