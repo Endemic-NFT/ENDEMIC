@@ -8,9 +8,12 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 error InsufficientAmount();
-error GracePeriodNotFinished();
 
-abstract contract TokenPoolBase is
+/**
+ * @title LockingPoolBase
+ * @dev Abstract contract providing basic functionality for token locking pools
+ */
+abstract contract TokenLockingPoolBase is
     Initializable,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
@@ -19,20 +22,32 @@ abstract contract TokenPoolBase is
 
     IERC20 internal endemicToken;
 
+    /**
+     * @dev Enum representing different types of token activities
+     */
     enum ActivityType {
-        PermanentStake,
-        Stake,
-        Withdraw,
         Lock,
-        Unlock
+        ProlongedLock,
+        PermanentLock,
+        Withdraw
     }
 
+    /**
+     * @dev Emitted when a token activity occurs
+     * @param activity The type of activity
+     * @param account The account involved in the activity
+     * @param amount The amount of tokens involved in the activity
+     */
     event TokenActivity(
         ActivityType indexed activity,
         address indexed account,
         uint256 amount
     );
 
+    /**
+     * @dev Modifier to check if the amount is sufficient
+     * @param amount The amount to check
+     */
     modifier onlySufficientAmount(uint256 amount) {
         if (amount == 0) {
             revert InsufficientAmount();
@@ -41,10 +56,18 @@ abstract contract TokenPoolBase is
         _;
     }
 
-    function _claimTokens(uint256 amount) internal {
+    /**
+     * @dev Internal function to lock tokens
+     * @param amount The amount of tokens to lock
+     */
+    function _lockTokens(uint256 amount) internal {
         endemicToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 
+    /**
+     * @dev Internal function to release tokens
+     * @param amount The amount of tokens to release
+     */
     function _releaseTokens(uint256 amount) internal {
         endemicToken.safeTransfer(msg.sender, amount);
     }
