@@ -101,6 +101,19 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         });
     }
 
+    /**
+     * @notice Get the liquid lock stats for a specific account
+     * @param account Address of the account to get the stats for
+     * @return The amount of tokens locked by the account
+     */
+    function getProlongedLiquidPoolStats(address account)
+        public
+        view
+        returns (uint256)
+    {
+        return prolongedLiquidLocks[account].liquidLock.amount;
+    }
+
     function _revertIfLockPeriodNotFinished(uint256 lockPeriodEndTime)
         internal
         view

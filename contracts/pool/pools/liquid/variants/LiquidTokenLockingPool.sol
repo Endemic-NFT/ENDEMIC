@@ -66,6 +66,15 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     }
 
     /**
+     * @notice Get the liquid lock stats for a specific account
+     * @param account Address of the account to get the stats for
+     * @return The amount of tokens locked by the account
+     */
+    function getLiquidPoolStats(address account) public view returns (uint256) {
+        return liquidLocks[account].amount;
+    }
+
+    /**
      * @notice See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[50] private __gap;
