@@ -40,7 +40,7 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     /**
      * @notice Immediately withdraws locked tokens and pays unlock period removal fee
      */
-    function withdrawImmediately() external nonReentrant {
+    function withdrawLiquidLockImmediately() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
 
         _withdrawImmediately(lockInfo);
@@ -52,9 +52,20 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     }
 
     /**
+     * @notice Starts the unlock period for the liquid lock
+     */
+    function startUnlockPeriod() external nonReentrant {
+        LiquidLock memory lockInfo = liquidLocks[msg.sender];
+
+        LiquidLock memory newLiquidLockInfo = _startUnlockPeriod(lockInfo);
+
+        liquidLocks[msg.sender] = newLiquidLockInfo;
+    }
+
+    /**
      * @notice Withdraws locked tokens after finishing the lock period
      */
-    function withdraw() external nonReentrant {
+    function withdrawLiquidLock() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
 
         _withdraw(lockInfo);

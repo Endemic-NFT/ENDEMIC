@@ -21,6 +21,7 @@ abstract contract TokenLockingPoolBase is
     using SafeERC20 for IERC20;
 
     IERC20 internal endemicToken;
+    address feeReceiver;
 
     /**
      * @dev Enum representing different types of token activities

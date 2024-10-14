@@ -54,7 +54,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     /**
      * @notice Immediately withdraws locked tokens and pays unlock period removal fee
      */
-    function withdrawImmediately() internal nonReentrant {
+    function withdrawProlongedLiquidLockImmediately() external nonReentrant {
         ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
@@ -88,7 +88,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     /**
      * @notice Withdraws locked tokens after finishing the lock period
      */
-    function withdraw() external nonReentrant {
+    function withdrawProlongedLiquidLock() external nonReentrant {
         ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
