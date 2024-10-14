@@ -54,7 +54,7 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     /**
      * @notice Starts the unlock period for the liquid lock
      */
-    function startUnlockPeriod() external nonReentrant {
+    function startLiquidLockUnlockPeriod() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
 
         LiquidLock memory newLiquidLockInfo = _startUnlockPeriod(lockInfo);

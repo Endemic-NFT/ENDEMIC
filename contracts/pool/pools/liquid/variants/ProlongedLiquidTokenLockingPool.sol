@@ -70,7 +70,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     /**
      * @notice Starts the unlock period for the prolonged lock
      */
-    function startUnlockPeriod() external nonReentrant {
+    function startProlongedLiquidLockUnlockPeriod() external nonReentrant {
         ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
