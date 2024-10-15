@@ -87,6 +87,7 @@ describe('ProlongedLiquidTokenLockingPool', function () {
       await expect(startUnlockTx)
         .to.emit(prolongedLiquidTokenLockingPool, Events.UnlockPeriodStarted)
         .withArgs(
+          PoolType.ProlongedLiquid,
           addr1.address,
           Currencies.ONE_ETHER,
           currentTimestamp + TimePeriods.FOUR_WEEKS

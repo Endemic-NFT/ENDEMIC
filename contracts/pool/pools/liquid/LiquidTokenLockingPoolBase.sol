@@ -22,9 +22,10 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
     }
 
     event UnlockPeriodStarted(
+        PoolType indexed poolType,
         address indexed account,
-        uint256 indexed amount,
-        uint256 indexed unlockPeriodEndTime
+        uint256 amount,
+        uint256 unlockPeriodEndTime
     );
 
     /**
@@ -34,16 +35,12 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
      */
     function _startUnlockPeriod(LiquidLock memory liquidLockInfo)
         internal
+        view
         returns (LiquidLock memory)
     {
         uint256 endUnlockPeriodTime = block.timestamp + UNLOCK_PERIOD;
 
         _revertIfUnlockPeriodExists(liquidLockInfo.unlockPeriodEndTime);
-        emit UnlockPeriodStarted(
-            msg.sender,
-            liquidLockInfo.amount,
-            endUnlockPeriodTime
-        );
 
         return
             LiquidLock({

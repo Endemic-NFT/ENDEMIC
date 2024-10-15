@@ -70,6 +70,13 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         LiquidLock memory newLiquidLockInfo = _startUnlockPeriod(lockInfo);
 
         liquidLocks[msg.sender] = newLiquidLockInfo;
+
+        emit UnlockPeriodStarted(
+            PoolType.Liquid,
+            msg.sender,
+            lockInfo.amount,
+            newLiquidLockInfo.unlockPeriodEndTime
+        );
     }
 
     /**

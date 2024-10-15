@@ -93,6 +93,13 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
             liquidLock: liquidLock,
             lockPeriodEndTime: prolongedLock.lockPeriodEndTime
         });
+
+        emit UnlockPeriodStarted(
+            PoolType.ProlongedLiquid,
+            msg.sender,
+            liquidLock.amount,
+            liquidLock.unlockPeriodEndTime
+        );
     }
 
     /**
