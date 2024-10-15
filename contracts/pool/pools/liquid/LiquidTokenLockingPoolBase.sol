@@ -5,6 +5,7 @@ import "../TokenLockingPoolBase.sol";
 
 error UnlockPeriodNotFinished();
 error UnlockPeriodFinished();
+error UnlockPeriodExists();
 
 /**
  * @title LiquidPool
@@ -32,6 +33,7 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
     {
         uint256 endUnlockPeriodTime = block.timestamp + UNLOCK_PERIOD;
 
+        _revertIfUnlockPeriodExists(liquidLockInfo.unlockPeriodEndTime);
         emit UnlockPeriodStarted(
             msg.sender,
             liquidLockInfo.amount,
@@ -54,14 +56,17 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
 
         _revertIfUnlockPeriodFinished(liquidLockInfo.unlockPeriodEndTime);
 
-        uint256 amountToWithdraw = _subtractRemovalFee(availableToWithdraw);
+        (uint256 amountToWithdraw, uint256 removalFee) = _subtractRemovalFee(
+            availableToWithdraw
+        );
 
-        _releaseTokens(amountToWithdraw);
+        _releaseTokens(amountToWithdraw, removalFee);
 
         emit TokenActivity(
             ActivityType.Withdraw,
             msg.sender,
-            availableToWithdraw
+            availableToWithdraw,
+            0
         );
     }
 
@@ -79,15 +84,25 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
         emit TokenActivity(
             ActivityType.Withdraw,
             msg.sender,
-            availableToWithdraw
+            availableToWithdraw,
+            0
         );
+    }
+
+    function _revertIfUnlockPeriodExists(uint256 unlockPeriodEndTime)
+        internal
+        pure
+    {
+        if (unlockPeriodEndTime != 0) {
+            revert UnlockPeriodExists();
+        }
     }
 
     function _revertIfUnlockPeriodNotFinished(uint256 unlockPeriodEndTime)
         internal
         view
     {
-        if (block.timestamp < unlockPeriodEndTime) {
+        if (unlockPeriodEndTime == 0 || block.timestamp < unlockPeriodEndTime) {
             revert UnlockPeriodNotFinished();
         }
     }
@@ -96,7 +111,7 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
         internal
         view
     {
-        if (block.timestamp > unlockPeriodEndTime) {
+        if (unlockPeriodEndTime != 0 && block.timestamp > unlockPeriodEndTime) {
             revert UnlockPeriodFinished();
         }
     }
@@ -104,11 +119,11 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
     function _subtractRemovalFee(uint256 amount)
         internal
         pure
-        returns (uint256)
+        returns (uint256, uint256)
     {
         uint256 removalFee = _calculateRemovalFee(amount);
 
-        return amount - removalFee;
+        return (amount - removalFee, removalFee);
     }
 
     function _calculateRemovalFee(uint256 amount)

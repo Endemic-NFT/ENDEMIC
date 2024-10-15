@@ -6,4 +6,9 @@ const fastForwardTime = async (period) => {
   await ethers.provider.send('evm_mine');
 };
 
-module.exports = { fastForwardTime };
+const getCurrentTimestamp = async () => {
+  const block = await ethers.provider.getBlock('latest');
+  return block.timestamp;
+};
+
+module.exports = { fastForwardTime, getCurrentTimestamp };

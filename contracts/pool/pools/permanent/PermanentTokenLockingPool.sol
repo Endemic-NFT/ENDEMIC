@@ -14,16 +14,17 @@ contract PermanentTokenLockingPool is TokenLockingPoolBase {
      * @notice Permanently locks tokens
      * @param amount The amount of tokens to lock
      */
-    function permanentLock(
-        uint256 amount
-    ) external onlySufficientAmount(amount) {
+    function permanentLock(uint256 amount)
+        external
+        onlySufficientAmount(amount)
+    {
         uint256 currentPermanentLockedAmount = permanentLocks[msg.sender];
 
         permanentLocks[msg.sender] = currentPermanentLockedAmount + amount;
 
         _lockTokens(amount);
 
-        emit TokenActivity(ActivityType.PermanentLock, msg.sender, amount);
+        emit TokenActivity(ActivityType.PermanentLock, msg.sender, amount, 0);
     }
 
     /**
@@ -31,9 +32,11 @@ contract PermanentTokenLockingPool is TokenLockingPoolBase {
      * @param account Address of the account to get the stats for
      * @return The amount of tokens permanently locked by the account
      */
-    function getPermanentPoolStats(
-        address account
-    ) public view returns (uint256) {
+    function getPermanentPoolStats(address account)
+        public
+        view
+        returns (uint256)
+    {
         return permanentLocks[account];
     }
 

@@ -30,11 +30,7 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
 
         _lockTokens(amount);
 
-        emit TokenActivity(
-            ActivityType.ProlongedLock,
-            msg.sender,
-            newLockAmount
-        );
+        emit TokenActivity(ActivityType.Lock, msg.sender, newLockAmount, 0);
     }
 
     /**
@@ -43,12 +39,12 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     function withdrawLiquidLockImmediately() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
 
-        _withdrawImmediately(lockInfo);
-
         liquidLocks[msg.sender] = LiquidLock({
             amount: 0,
             unlockPeriodEndTime: 0
         });
+
+        _withdrawImmediately(lockInfo);
     }
 
     /**
@@ -68,12 +64,12 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     function withdrawLiquidLock() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
 
-        _withdraw(lockInfo);
-
         liquidLocks[msg.sender] = LiquidLock({
             amount: 0,
             unlockPeriodEndTime: 0
         });
+
+        _withdraw(lockInfo);
     }
 
     /**

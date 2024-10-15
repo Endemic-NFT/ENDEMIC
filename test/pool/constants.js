@@ -1,34 +1,23 @@
 const { utils } = require('ethers');
 
 const ActivityType = {
-  PermanentStake: 0,
-  Stake: 1,
-  Withdraw: 2,
-  Lock: 3,
-  Unlock: 4,
+  Lock: 0,
+  ProlongedLock: 1,
+  PermanentLock: 2,
+  Withdraw: 3,
 };
 
 const Events = {
   TokenActivity: 'TokenActivity',
-  GracePeriodStarted: 'GracePeriodStarted',
+  UnlockPeriodStarted: 'UnlockPeriodStarted',
 };
 
 const Errors = {
+  UnlockPeriodExists: 'UnlockPeriodExists',
   InsufficientAmount: 'InsufficientAmount',
-  NonWithdrawableTokens: 'NonWithdrawableTokens',
-  GracePeriodNotFinished: 'GracePeriodNotFinished',
   UnlockPeriodNotFinished: 'UnlockPeriodNotFinished',
-  ExistentTokensToClaim: 'ExistentTokensToClaim',
-  AmountExceedsAvailableWithdraw: 'AmountExceedsAvailableWithdraw',
-  StakedAmountExceeded: 'StakedAmountExceeded',
-  LockedAmountExceeded: 'LockedAmountExceeded',
-};
-
-const MethodSignatures = {
-  WithdrawImmediately: 'withdraw(uint256)',
-  WithdrawWithGracePeriod: 'withdraw()',
-  UnlockImmediately: 'unlock(uint256)',
-  UnlockWithGracePeriod: 'unlock()',
+  UnlockPeriodFinished: 'UnlockPeriodFinished',
+  LockPeriodNotFinished: 'LockPeriodNotFinished',
 };
 
 const TimePeriods = {
@@ -54,6 +43,5 @@ module.exports = {
   Errors,
   TimePeriods,
   ActivityType,
-  MethodSignatures,
   Currencies: generateCurrencies(),
 };

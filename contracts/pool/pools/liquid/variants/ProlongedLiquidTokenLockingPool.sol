@@ -47,7 +47,8 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         emit TokenActivity(
             ActivityType.ProlongedLock,
             msg.sender,
-            newLockAmount
+            newLockAmount,
+            prolongedLiquidLocks[msg.sender].lockPeriodEndTime
         );
     }
 
@@ -59,12 +60,12 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
 
-        _withdrawImmediately(prolongedLock.liquidLock);
-
         prolongedLiquidLocks[msg.sender] = ProlongedLock({
             liquidLock: LiquidLock(0, 0),
             lockPeriodEndTime: 0
         });
+
+        _withdrawImmediately(prolongedLock.liquidLock);
     }
 
     /**
@@ -93,12 +94,12 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
 
-        _withdraw(prolongedLock.liquidLock);
-
         prolongedLiquidLocks[msg.sender] = ProlongedLock({
             liquidLock: LiquidLock(0, 0),
             lockPeriodEndTime: 0
         });
+
+        _withdraw(prolongedLock.liquidLock);
     }
 
     /**

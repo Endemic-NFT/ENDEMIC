@@ -42,7 +42,8 @@ abstract contract TokenLockingPoolBase is
     event TokenActivity(
         ActivityType indexed activity,
         address indexed account,
-        uint256 amount
+        uint256 amount,
+        uint256 lockPeriodEndTime
     );
 
     /**
@@ -63,6 +64,18 @@ abstract contract TokenLockingPoolBase is
      */
     function _lockTokens(uint256 amount) internal {
         endemicToken.safeTransferFrom(msg.sender, address(this), amount);
+    }
+
+    /**
+     * @dev Internal function to release tokens
+     * @param amount The amount of tokens to release
+     */
+    function _releaseTokens(uint256 amount, uint256 removalFee) internal {
+        endemicToken.safeTransfer(msg.sender, amount);
+
+        if (removalFee > 0) {
+            endemicToken.safeTransfer(feeReceiver, removalFee);
+        }
     }
 
     /**

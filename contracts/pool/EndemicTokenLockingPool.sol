@@ -9,6 +9,7 @@ import "./pools/permanent/PermanentTokenLockingPool.sol";
  * @title EndemicTokenPool
  * @dev Utilizes funcionalities of liquid and permanent pools
  */
+
 contract EndemicTokenLockingPool is
     LiquidTokenLockingPool,
     ProlongedLiquidTokenLockingPool,
@@ -24,7 +25,7 @@ contract EndemicTokenLockingPool is
      * @dev Initializes the contract and sets the EndemicToken address
      * @param tokenAddress Address of the EndemicToken
      */
-    function __EndemicTokenPool_init(
+    function __EndemicTokenLockingPool_init(
         address tokenAddress,
         address feeReceiverAddress
     ) public initializer {
