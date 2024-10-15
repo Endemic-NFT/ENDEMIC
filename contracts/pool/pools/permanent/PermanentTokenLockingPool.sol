@@ -5,7 +5,7 @@ import "../TokenLockingPoolBase.sol";
 
 /**
  * @title PermanentTokenLockingPool
- * @dev Provides functionality for permanently staking tokens
+ * @dev Provides functionality for permanently locking tokens
  */
 contract PermanentTokenLockingPool is TokenLockingPoolBase {
     mapping(address => uint256) private permanentLocks;
@@ -24,11 +24,17 @@ contract PermanentTokenLockingPool is TokenLockingPoolBase {
 
         _lockTokens(amount);
 
-        emit TokenActivity(ActivityType.PermanentLock, msg.sender, amount, 0);
+        emit TokenActivity(
+            PoolType.Permanent,
+            ActivityType.Lock,
+            msg.sender,
+            currentPermanentLockedAmount + amount,
+            0
+        );
     }
 
     /**
-     * @notice Get the permanent lock stats for a specific account
+     * @notice Gets the permanent lock stats for a specific account
      * @param account Address of the account to get the stats for
      * @return The amount of tokens permanently locked by the account
      */

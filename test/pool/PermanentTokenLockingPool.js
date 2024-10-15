@@ -1,7 +1,13 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const { deployEndemicTokenPoolWithDeps } = require('../helpers/deploy');
-const { Events, Errors, Currencies, ActivityType } = require('./constants');
+const {
+  Events,
+  Errors,
+  Currencies,
+  ActivityType,
+  PoolType,
+} = require('./constants');
 
 describe('PermanentTokenLockingPool', function () {
   let owner, addr1, permanentTokenLockingPool, endemicToken, snapshotId;
@@ -35,7 +41,8 @@ describe('PermanentTokenLockingPool', function () {
       await expect(lockTx)
         .to.emit(permanentTokenLockingPool, Events.TokenActivity)
         .withArgs(
-          ActivityType.PermanentLock,
+          PoolType.Permanent,
+          ActivityType.Lock,
           addr1.address,
           Currencies.ONE_ETHER,
           0

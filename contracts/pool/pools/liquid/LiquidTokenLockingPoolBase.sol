@@ -8,9 +8,9 @@ error UnlockPeriodFinished();
 error UnlockPeriodExists();
 
 /**
- * @title LiquidPool
- * @dev Provides functionality for staking, locking, and withdrawing tokens
- * Tokens can be withdrawn with respecting grace period or immediately by paying ignore fee
+ * @title LiquidTokenLockingPoolBase
+ * @dev Provides functionality for locking and withdrawing tokens.
+ * Tokens can be withdrawn by respecting the unlock period or immediately by paying a removal fee.
  */
 abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
     uint256 internal constant UNLOCK_PERIOD = 4 weeks;
@@ -27,6 +27,11 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
         uint256 indexed unlockPeriodEndTime
     );
 
+    /**
+     * @notice Starts the unlock period for a liquid lock.
+     * @param liquidLockInfo The information of the liquid lock.
+     * @return The updated LiquidLock structure with the unlock period end time.
+     */
     function _startUnlockPeriod(LiquidLock memory liquidLockInfo)
         internal
         returns (LiquidLock memory)
@@ -48,8 +53,8 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
     }
 
     /**
-     * @notice Immediately withdraws locked tokens and pays unlock period removal fee
-     * @param liquidLockInfo The information of the liquid lock
+     * @notice Immediately withdraws locked tokens and pays the unlock period removal fee.
+     * @param liquidLockInfo The information of the liquid lock.
      */
     function _withdrawImmediately(LiquidLock memory liquidLockInfo) internal {
         uint256 availableToWithdraw = liquidLockInfo.amount;
@@ -61,18 +66,11 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
         );
 
         _releaseTokens(amountToWithdraw, removalFee);
-
-        emit TokenActivity(
-            ActivityType.Withdraw,
-            msg.sender,
-            availableToWithdraw,
-            0
-        );
     }
 
     /**
-     * @notice Withdraws staked tokens after finishing grace period
-     * @param liquidLockInfo The information of the liquid lock
+     * @notice Withdraws locked tokens after finishing the unlock period.
+     * @param liquidLockInfo The information of the liquid lock.
      */
     function _withdraw(LiquidLock memory liquidLockInfo) internal {
         uint256 availableToWithdraw = liquidLockInfo.amount;
@@ -82,6 +80,7 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
         _releaseTokens(availableToWithdraw);
 
         emit TokenActivity(
+            PoolType.Liquid,
             ActivityType.Withdraw,
             msg.sender,
             availableToWithdraw,

@@ -2,9 +2,13 @@ const { utils } = require('ethers');
 
 const ActivityType = {
   Lock: 0,
-  ProlongedLock: 1,
-  PermanentLock: 2,
-  Withdraw: 3,
+  Withdraw: 1,
+};
+
+const PoolType = {
+  Liquid: 0,
+  ProlongedLiquid: 1,
+  Permanent: 2,
 };
 
 const Events = {
@@ -43,5 +47,6 @@ module.exports = {
   Errors,
   TimePeriods,
   ActivityType,
+  PoolType,
   Currencies: generateCurrencies(),
 };

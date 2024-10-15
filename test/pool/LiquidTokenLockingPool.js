@@ -8,6 +8,7 @@ const {
   TimePeriods,
   ActivityType,
   Currencies,
+  PoolType,
 } = require('./constants');
 
 describe('LiquidTokenLockingPool', function () {
@@ -41,7 +42,13 @@ describe('LiquidTokenLockingPool', function () {
 
       await expect(lockTx)
         .to.emit(liquidTokenLockingPool, Events.TokenActivity)
-        .withArgs(ActivityType.Lock, addr1.address, Currencies.ONE_ETHER, 0);
+        .withArgs(
+          PoolType.Liquid,
+          ActivityType.Lock,
+          addr1.address,
+          Currencies.ONE_ETHER,
+          0
+        );
 
       const balance = await endemicToken.balanceOf(addr1.address);
       expect(balance).to.equal(Currencies.FIVE_ETHER.sub(Currencies.ONE_ETHER));
@@ -121,6 +128,7 @@ describe('LiquidTokenLockingPool', function () {
       await expect(withdrawTx)
         .to.emit(liquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
+          PoolType.Liquid,
           ActivityType.Withdraw,
           addr1.address,
           Currencies.ONE_ETHER,
@@ -149,6 +157,7 @@ describe('LiquidTokenLockingPool', function () {
       await expect(withdrawTx)
         .to.emit(liquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
+          PoolType.Liquid,
           ActivityType.Withdraw,
           addr1.address,
           Currencies.ONE_ETHER,
@@ -298,6 +307,7 @@ describe('LiquidTokenLockingPool', function () {
       await expect(withdrawTx)
         .to.emit(liquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
+          PoolType.Liquid,
           ActivityType.Withdraw,
           addr1.address,
           Currencies.TWO_ETHER,

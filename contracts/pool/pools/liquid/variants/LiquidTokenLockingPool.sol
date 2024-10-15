@@ -5,13 +5,13 @@ import "../LiquidTokenLockingPoolBase.sol";
 
 /**
  * @title LiquidTokenLockingPool
- * @dev Provides functionality for prolonged locking of tokens with a lock period
+ * @dev Provides functionality for locking tokens with a liquid lock period
  */
 contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     mapping(address => LiquidLock) internal liquidLocks;
 
     /**
-     * @notice Locks tokens in the liquid pool with a prolonged lock period
+     * @notice Locks tokens in the liquid pool
      * @param amount The amount of tokens to lock
      */
     function liquidLock(uint256 amount)
@@ -30,11 +30,17 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
 
         _lockTokens(amount);
 
-        emit TokenActivity(ActivityType.Lock, msg.sender, newLockAmount, 0);
+        emit TokenActivity(
+            PoolType.Liquid,
+            ActivityType.Lock,
+            msg.sender,
+            newLockAmount,
+            0
+        );
     }
 
     /**
-     * @notice Immediately withdraws locked tokens and pays unlock period removal fee
+     * @notice Immediately withdraws locked tokens and pays the unlock period removal fee
      */
     function withdrawLiquidLockImmediately() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
@@ -45,6 +51,14 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         });
 
         _withdrawImmediately(lockInfo);
+
+        emit TokenActivity(
+            PoolType.Liquid,
+            ActivityType.Withdraw,
+            msg.sender,
+            lockInfo.amount,
+            0
+        );
     }
 
     /**
@@ -59,7 +73,7 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     }
 
     /**
-     * @notice Withdraws locked tokens after finishing the lock period
+     * @notice Withdraws locked tokens after finishing the unlock period
      */
     function withdrawLiquidLock() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
@@ -70,10 +84,18 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         });
 
         _withdraw(lockInfo);
+
+        emit TokenActivity(
+            PoolType.Liquid,
+            ActivityType.Withdraw,
+            msg.sender,
+            lockInfo.amount,
+            0
+        );
     }
 
     /**
-     * @notice Get the liquid lock stats for a specific account
+     * @notice Gets the liquid lock stats for a specific account
      * @param account Address of the account to get the stats for
      * @return The amount of tokens locked by the account
      */

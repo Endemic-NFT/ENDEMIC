@@ -8,6 +8,7 @@ const {
   TimePeriods,
   ActivityType,
   Currencies,
+  PoolType,
 } = require('./constants');
 
 describe('ProlongedLiquidTokenLockingPool', function () {
@@ -44,7 +45,8 @@ describe('ProlongedLiquidTokenLockingPool', function () {
       await expect(lockTx)
         .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
-          ActivityType.ProlongedLock,
+          PoolType.ProlongedLiquid,
+          ActivityType.Lock,
           addr1.address,
           Currencies.ONE_ETHER,
           currentTimestamp + TimePeriods.TWO_YEARS
@@ -180,6 +182,7 @@ describe('ProlongedLiquidTokenLockingPool', function () {
       await expect(withdrawTx)
         .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
+          PoolType.ProlongedLiquid,
           ActivityType.Withdraw,
           addr1.address,
           Currencies.ONE_ETHER,
@@ -210,6 +213,7 @@ describe('ProlongedLiquidTokenLockingPool', function () {
       await expect(withdrawTx)
         .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
+          PoolType.ProlongedLiquid,
           ActivityType.Withdraw,
           addr1.address,
           Currencies.ONE_ETHER,

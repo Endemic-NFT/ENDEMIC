@@ -45,7 +45,8 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         _lockTokens(amount);
 
         emit TokenActivity(
-            ActivityType.ProlongedLock,
+            PoolType.ProlongedLiquid,
+            ActivityType.Lock,
             msg.sender,
             newLockAmount,
             prolongedLiquidLocks[msg.sender].lockPeriodEndTime
@@ -53,7 +54,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     }
 
     /**
-     * @notice Immediately withdraws locked tokens and pays unlock period removal fee
+     * @notice Immediately withdraws locked tokens and pays the unlock period removal fee
      */
     function withdrawProlongedLiquidLockImmediately() external nonReentrant {
         ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
@@ -66,6 +67,14 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         });
 
         _withdrawImmediately(prolongedLock.liquidLock);
+
+        emit TokenActivity(
+            PoolType.ProlongedLiquid,
+            ActivityType.Withdraw,
+            msg.sender,
+            prolongedLock.liquidLock.amount,
+            0
+        );
     }
 
     /**
@@ -100,10 +109,18 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         });
 
         _withdraw(prolongedLock.liquidLock);
+
+        emit TokenActivity(
+            PoolType.ProlongedLiquid,
+            ActivityType.Withdraw,
+            msg.sender,
+            prolongedLock.liquidLock.amount,
+            0
+        );
     }
 
     /**
-     * @notice Get the liquid lock stats for a specific account
+     * @notice Gets the prolonged liquid lock stats for a specific account
      * @param account Address of the account to get the stats for
      * @return The amount of tokens locked by the account
      */

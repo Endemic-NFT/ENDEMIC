@@ -28,19 +28,29 @@ abstract contract TokenLockingPoolBase is
      */
     enum ActivityType {
         Lock,
-        ProlongedLock,
-        PermanentLock,
         Withdraw
     }
 
     /**
+     * @dev Enum representing different types of token pools
+     */
+    enum PoolType {
+        Liquid,
+        ProlongedLiquid,
+        Permanent
+    }
+
+    /**
      * @dev Emitted when a token activity occurs
-     * @param activity The type of activity
+     * @param poolType The type of pool
+     * @param activityType The type of activity
      * @param account The account involved in the activity
      * @param amount The amount of tokens involved in the activity
+     * @param lockPeriodEndTime The end time of the lock period
      */
     event TokenActivity(
-        ActivityType indexed activity,
+        PoolType indexed poolType,
+        ActivityType indexed activityType,
         address indexed account,
         uint256 amount,
         uint256 lockPeriodEndTime
@@ -69,6 +79,7 @@ abstract contract TokenLockingPoolBase is
     /**
      * @dev Internal function to release tokens
      * @param amount The amount of tokens to release
+     * @param removalFee The fee for removing the lock period
      */
     function _releaseTokens(uint256 amount, uint256 removalFee) internal {
         endemicToken.safeTransfer(msg.sender, amount);
