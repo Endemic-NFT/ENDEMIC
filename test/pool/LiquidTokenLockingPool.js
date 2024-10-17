@@ -54,15 +54,6 @@ describe('LiquidTokenLockingPool', function () {
       expect(balance).to.equal(Currencies.FIVE_ETHER.sub(Currencies.ONE_ETHER));
     });
 
-    it('Should fail to lock 0 tokens', async function () {
-      const lockTx = liquidTokenLockingPool.connect(addr1).liquidLock(0);
-
-      await expect(lockTx).to.be.revertedWithCustomError(
-        liquidTokenLockingPool,
-        Errors.InsufficientAmount
-      );
-    });
-
     it('Should start the unlock period for the liquid lock', async function () {
       await endemicToken
         .connect(addr1)
@@ -277,6 +268,48 @@ describe('LiquidTokenLockingPool', function () {
       );
       expect(stats).to.equal(Currencies.ONE_ETHER);
     });
+
+    it('Should revert when trying to lock 0 tokens', async function () {
+      const lockTx = liquidTokenLockingPool.connect(addr1).liquidLock(0);
+
+      await expect(lockTx).to.be.revertedWithCustomError(
+        liquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+    });
+
+    it('Should revert when trying to start unlock period with 0 tokens locked', async function () {
+      const startUnlockTx = liquidTokenLockingPool
+        .connect(addr1)
+        .startLiquidLockUnlockPeriod();
+
+      await expect(startUnlockTx).to.be.revertedWithCustomError(
+        liquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+    });
+
+    it('Should revert when trying to withdraw with 0 tokens locked', async function () {
+      const withdrawTx = liquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLiquidLock();
+
+      await expect(withdrawTx).to.be.revertedWithCustomError(
+        liquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+    });
+
+    it('Should revert when trying to immediately withdraw with 0 tokens locked', async function () {
+      const withdrawImmediatelyTx = liquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLiquidLockImmediately();
+
+      await expect(withdrawImmediatelyTx).to.be.revertedWithCustomError(
+        liquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+    });
   });
 
   describe('Multiple Locks and Unlocks', function () {
@@ -317,19 +350,6 @@ describe('LiquidTokenLockingPool', function () {
 
       const balance = await endemicToken.balanceOf(addr1.address);
       expect(balance).to.equal(Currencies.FIVE_ETHER);
-    });
-  });
-
-  describe('Handling of Non-Existent Locks', function () {
-    it('Should revert when trying to withdraw from a non-existent lock', async function () {
-      const withdrawTx = liquidTokenLockingPool
-        .connect(addr1)
-        .withdrawLiquidLock();
-
-      await expect(withdrawTx).to.be.revertedWithCustomError(
-        liquidTokenLockingPool,
-        Errors.UnlockPeriodNotFinished
-      );
     });
   });
 });

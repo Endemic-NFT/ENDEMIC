@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const { deployEndemicTokenPoolWithDeps } = require('../helpers/deploy');
 const { fastForwardTime } = require('../helpers/time');
-const { Currencies, TimePeriods } = require('./constants');
+const { Currencies, TimePeriods, Errors } = require('./constants');
 
 describe('EndemicTokenLockingPool', function () {
   let owner, addr1, endemicToken, endemicTokenLockingPool, snapshotId;
@@ -67,5 +67,31 @@ describe('EndemicTokenLockingPool', function () {
       expect(stats.liquidLock).to.equal(0);
       expect(stats.prolongedLiquidLock).to.equal(0);
     });
+  });
+
+  it('Should revert when trying to lock 0 tokens in any pool', async function () {
+    // Test for permanent lock
+    await expect(
+      endemicTokenLockingPool.connect(addr1).permanentLock(0)
+    ).to.be.revertedWithCustomError(
+      endemicTokenLockingPool,
+      Errors.InsufficientAmount
+    );
+
+    // Test for liquid lock
+    await expect(
+      endemicTokenLockingPool.connect(addr1).liquidLock(0)
+    ).to.be.revertedWithCustomError(
+      endemicTokenLockingPool,
+      Errors.InsufficientAmount
+    );
+
+    // Test for prolonged liquid lock
+    await expect(
+      endemicTokenLockingPool.connect(addr1).prolongedLiquidLock(0)
+    ).to.be.revertedWithCustomError(
+      endemicTokenLockingPool,
+      Errors.InsufficientAmount
+    );
   });
 });

@@ -75,5 +75,14 @@ describe('PermanentTokenLockingPool', function () {
       );
       expect(stats).to.equal(Currencies.ONE_ETHER);
     });
+
+    it('Should revert when trying to lock 0 tokens', async function () {
+      const lockTx = permanentTokenLockingPool.connect(addr1).permanentLock(0);
+
+      await expect(lockTx).to.be.revertedWithCustomError(
+        permanentTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+    });
   });
 });

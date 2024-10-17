@@ -56,7 +56,7 @@ describe('ProlongedLiquidTokenLockingPool', function () {
       expect(balance).to.equal(Currencies.FIVE_ETHER.sub(Currencies.ONE_ETHER));
     });
 
-    it('Should fail to lock 0 tokens', async function () {
+    it('Should revert when trying to lock 0 tokens', async function () {
       const lockTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
         .prolongedLiquidLock(0);
@@ -288,6 +288,39 @@ describe('ProlongedLiquidTokenLockingPool', function () {
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
         .prolongedLiquidLock(Currencies.ONE_ETHER);
+    });
+
+    it('Should revert when trying to start unlock period with 0 tokens locked', async function () {
+      const startUnlockTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .startProlongedLiquidLockUnlockPeriod();
+
+      await expect(startUnlockTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+    });
+
+    it('Should revert when trying to withdraw with 0 tokens locked', async function () {
+      const withdrawTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawProlongedLiquidLock();
+
+      await expect(withdrawTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+    });
+
+    it('Should revert when trying to immediately withdraw with 0 tokens locked', async function () {
+      const withdrawImmediatelyTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawProlongedLiquidLockImmediately();
+
+      await expect(withdrawImmediatelyTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
     });
   });
 });
