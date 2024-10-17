@@ -3,16 +3,16 @@ pragma solidity 0.8.18;
 
 import "../TokenLockingPoolBase.sol";
 
-error UnlockPeriodNotFinished();
-error UnlockPeriodFinished();
-error UnlockPeriodExists();
-
 /**
  * @title LiquidTokenLockingPoolBase
  * @dev Provides functionality for locking and withdrawing tokens.
  * Tokens can be withdrawn by respecting the unlock period or immediately by paying a removal fee.
  */
 abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
+    error UnlockPeriodNotFinished();
+    error UnlockPeriodFinished();
+    error UnlockPeriodExists();
+
     uint256 internal constant UNLOCK_PERIOD = 4 weeks;
     uint256 internal constant UNLOCK_PERIOD_REMOVAL_FEE = 1000;
 
@@ -75,14 +75,6 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
         _revertIfUnlockPeriodNotFinished(liquidLockInfo.unlockPeriodEndTime);
 
         _releaseTokens(availableToWithdraw);
-
-        emit TokenActivity(
-            PoolType.Liquid,
-            ActivityType.Withdraw,
-            msg.sender,
-            availableToWithdraw,
-            0
-        );
     }
 
     function _revertIfUnlockPeriodExists(uint256 unlockPeriodEndTime)

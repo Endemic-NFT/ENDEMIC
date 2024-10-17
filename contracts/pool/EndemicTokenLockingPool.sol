@@ -6,8 +6,8 @@ import "./pools/liquid/variants/ProlongedLiquidTokenLockingPool.sol";
 import "./pools/permanent/PermanentTokenLockingPool.sol";
 
 /**
- * @title EndemicTokenPool
- * @dev Utilizes funcionalities of liquid and permanent pools
+ * @title EndemicTokenLockingPool
+ * @dev Utilizes functionalities of liquid and permanent pools
  */
 
 contract EndemicTokenLockingPool is
@@ -22,8 +22,9 @@ contract EndemicTokenLockingPool is
     }
 
     /**
-     * @dev Initializes the contract and sets the EndemicToken address
+     * @dev Initializes the contract and sets the EndemicToken address and fee receiver address
      * @param tokenAddress Address of the EndemicToken
+     * @param feeReceiverAddress Address of the fee receiver
      */
     function __EndemicTokenLockingPool_init(
         address tokenAddress,
@@ -39,7 +40,7 @@ contract EndemicTokenLockingPool is
     /**
      * @notice Get the pool stats for a specific account
      * @param account Address of the account to get the stats for
-     * @return stats PoolStats structure containing permanentStake, liquidStake, and liquidLock
+     * @return stats PoolStats structure containing permanentLock, liquidLock, and prolongedLiquidLock
      */
     function getPoolStats(address account)
         external

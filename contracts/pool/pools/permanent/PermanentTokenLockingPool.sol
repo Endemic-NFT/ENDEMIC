@@ -7,8 +7,8 @@ import "../TokenLockingPoolBase.sol";
  * @title PermanentTokenLockingPool
  * @dev Provides functionality for permanently locking tokens
  */
-contract PermanentTokenLockingPool is TokenLockingPoolBase {
-    mapping(address => uint256) private permanentLocks;
+abstract contract PermanentTokenLockingPool is TokenLockingPoolBase {
+    mapping(address account => uint256 permanentLock) private permanentLocks;
 
     /**
      * @notice Permanently locks tokens

@@ -3,13 +3,15 @@ pragma solidity 0.8.18;
 
 import "../LiquidTokenLockingPoolBase.sol";
 
-error LockPeriodNotFinished();
-
 /**
  * @title ProlongedLiquidTokenLockingPool
  * @dev Provides functionality for prolonged locking of tokens with a lock period
  */
-contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
+abstract contract ProlongedLiquidTokenLockingPool is
+    LiquidTokenLockingPoolBase
+{
+    error LockPeriodNotFinished();
+
     uint256 internal constant LOCK_PERIOD = 63_158_400; // 2 years considering leap years in seconds
 
     struct ProlongedLock {
@@ -17,7 +19,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         uint256 lockPeriodEndTime;
     }
 
-    mapping(address => ProlongedLock) internal prolongedLiquidLocks;
+    mapping(address account => ProlongedLock prolongedLiquidLock) internal prolongedLiquidLocks;
 
     /**
      * @notice Locks tokens in the liquid pool with a prolonged lock period
@@ -60,7 +62,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
-
+        _revertIfAmountIsZero(prolongedLock.liquidLock.amount);
         prolongedLiquidLocks[msg.sender] = ProlongedLock({
             liquidLock: LiquidLock(0, 0),
             lockPeriodEndTime: 0
@@ -84,6 +86,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
+        _revertIfAmountIsZero(prolongedLock.liquidLock.amount);
 
         LiquidLock memory liquidLock = _startUnlockPeriod(
             prolongedLock.liquidLock
@@ -109,7 +112,7 @@ contract ProlongedLiquidTokenLockingPool is LiquidTokenLockingPoolBase {
         ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
-
+        _revertIfAmountIsZero(prolongedLock.liquidLock.amount);
         prolongedLiquidLocks[msg.sender] = ProlongedLock({
             liquidLock: LiquidLock(0, 0),
             lockPeriodEndTime: 0

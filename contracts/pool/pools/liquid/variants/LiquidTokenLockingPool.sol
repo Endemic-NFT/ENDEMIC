@@ -7,8 +7,8 @@ import "../LiquidTokenLockingPoolBase.sol";
  * @title LiquidTokenLockingPool
  * @dev Provides functionality for locking tokens with a liquid lock period
  */
-contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
-    mapping(address => LiquidLock) internal liquidLocks;
+abstract contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
+    mapping(address account => LiquidLock liquidLock) internal liquidLocks;
 
     /**
      * @notice Locks tokens in the liquid pool
@@ -45,6 +45,8 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     function withdrawLiquidLockImmediately() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
 
+        _revertIfAmountIsZero(lockInfo.amount);
+
         liquidLocks[msg.sender] = LiquidLock({
             amount: 0,
             unlockPeriodEndTime: 0
@@ -67,6 +69,8 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     function startLiquidLockUnlockPeriod() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
 
+        _revertIfAmountIsZero(lockInfo.amount);
+
         LiquidLock memory newLiquidLockInfo = _startUnlockPeriod(lockInfo);
 
         liquidLocks[msg.sender] = newLiquidLockInfo;
@@ -84,6 +88,8 @@ contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
      */
     function withdrawLiquidLock() external nonReentrant {
         LiquidLock memory lockInfo = liquidLocks[msg.sender];
+
+        _revertIfAmountIsZero(lockInfo.amount);
 
         liquidLocks[msg.sender] = LiquidLock({
             amount: 0,
