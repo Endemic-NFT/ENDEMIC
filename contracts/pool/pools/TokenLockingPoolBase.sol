@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 /**
- * @title LockingPoolBase
+ * @title TokenLockingPoolBase
  * @dev Abstract contract providing basic functionality for token locking pools
  */
 abstract contract TokenLockingPoolBase is
@@ -16,12 +16,7 @@ abstract contract TokenLockingPoolBase is
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
 {
-    error InsufficientAmount();
-
     using SafeERC20 for IERC20;
-
-    IERC20 internal endemicToken;
-    address public feeReceiver;
 
     /**
      * @dev Enum representing different types of token activities
@@ -40,6 +35,9 @@ abstract contract TokenLockingPoolBase is
         Permanent
     }
 
+    IERC20 internal endemicToken;
+    address public feeReceiver;
+
     /**
      * @dev Emitted when a token activity occurs
      * @param poolType The type of pool
@@ -56,6 +54,9 @@ abstract contract TokenLockingPoolBase is
         uint256 lockPeriodEndTime
     );
 
+    error InsufficientAmount();
+    error InvalidAddress();
+
     /**
      * @dev Modifier to check if the amount is sufficient
      * @param amount The amount to check
@@ -64,7 +65,6 @@ abstract contract TokenLockingPoolBase is
         if (amount == 0) {
             revert InsufficientAmount();
         }
-
         _;
     }
 
@@ -73,7 +73,9 @@ abstract contract TokenLockingPoolBase is
      * @param newFeeReceiver The new address to receive fees
      */
     function updateFeeReceiver(address newFeeReceiver) external onlyOwner {
-        require(newFeeReceiver != address(0), "Invalid address");
+        if (newFeeReceiver == address(0)) {
+            revert InvalidAddress();
+        }
         feeReceiver = newFeeReceiver;
     }
 

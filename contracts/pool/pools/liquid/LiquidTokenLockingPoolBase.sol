@@ -9,17 +9,13 @@ import "../TokenLockingPoolBase.sol";
  * Tokens can be withdrawn by respecting the unlock period or immediately by paying a removal fee.
  */
 abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
-    error UnlockPeriodNotFinished();
-    error UnlockPeriodFinished();
-    error UnlockPeriodExists();
-
-    uint256 internal constant UNLOCK_PERIOD = 4 weeks;
-    uint256 internal constant UNLOCK_PERIOD_REMOVAL_FEE = 1000;
-
     struct LiquidLock {
         uint256 amount;
         uint256 unlockPeriodEndTime;
     }
+
+    uint256 internal constant UNLOCK_PERIOD = 4 weeks;
+    uint256 internal constant UNLOCK_PERIOD_REMOVAL_FEE = 1000;
 
     event UnlockPeriodStarted(
         PoolType indexed poolType,
@@ -27,6 +23,10 @@ abstract contract LiquidTokenLockingPoolBase is TokenLockingPoolBase {
         uint256 amount,
         uint256 unlockPeriodEndTime
     );
+
+    error UnlockPeriodNotFinished();
+    error UnlockPeriodFinished();
+    error UnlockPeriodExists();
 
     /**
      * @notice Starts the unlock period for a liquid lock.

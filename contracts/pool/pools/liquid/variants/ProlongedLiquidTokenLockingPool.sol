@@ -10,16 +10,16 @@ import "../LiquidTokenLockingPoolBase.sol";
 abstract contract ProlongedLiquidTokenLockingPool is
     LiquidTokenLockingPoolBase
 {
-    error LockPeriodNotFinished();
-
-    uint256 internal constant LOCK_PERIOD = 63_158_400; // 2 years considering leap years in seconds
-
     struct ProlongedLock {
         LiquidLock liquidLock;
         uint256 lockPeriodEndTime;
     }
 
+    uint256 internal constant LOCK_PERIOD = 63_158_400; // 2 years considering leap years in seconds
+
     mapping(address account => ProlongedLock prolongedLiquidLock) internal prolongedLiquidLocks;
+
+    error LockPeriodNotFinished();
 
     /**
      * @notice Locks tokens in the liquid pool with a prolonged lock period
