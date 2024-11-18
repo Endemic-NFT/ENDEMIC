@@ -27,7 +27,7 @@
     "@primitivefi/hardhat-dodoc": "^0.2.3",
     "chai": "^4.3.7",
     "eslint": "^8.25.0",
-    "hardhat": "2.17.2",
+    "hardhat": "2.22.16",
     "hardhat-contract-sizer": "^2.6.1",
     "hardhat-gas-reporter": "^1.0.9",
     "prettier": "^2.7.1",
