@@ -54,6 +54,10 @@ deployArtOrderFactory:
 deployAndUpdateArtOrderFactoryImplemetnation:
 	npx hardhat run scripts/art-orders/deploy-and-upgrade-art-order-factory-implementation.js --network ${network}
 
+.PHONY: deployEndemicTokenLockingPool
+deployEndemicTokenLockingPool:
+	npx hardhat run scripts/pool/deploy-endemic-token-locking-pool.js --network ${network}
+
 .PHONY: verify
 verify:
 	npx hardhat verify --network ${network} "${address}"
