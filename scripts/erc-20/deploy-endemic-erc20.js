@@ -6,9 +6,7 @@ async function main() {
   console.log('Deploying Endemic ERC20 with the account:', deployer.address);
 
   const EndemicToken = await ethers.getContractFactory('EndemicToken');
-  const endemicToken = await EndemicToken.deploy(
-    '0xcF96Ed58395d55d6bd0c470f7ed064741119cbC5'
-  );
+  const endemicToken = await EndemicToken.deploy(deployer.address);
   await endemicToken.deployed();
 
   console.log('Endemic ERC20 deployed to:', endemicToken.address);

@@ -110,11 +110,6 @@
       "txHash": "0x68ea8aaf8b85b23926df2a421fb2580f7afb7317559f8c6c77a31719dffb873a",
       "kind": "transparent"
     },
-    {
-      "address": "0x1D646DD04f38E9B1B96A17C9214903458Cffd8F6",
-      "txHash": "0xda4dc2d659f38b26f66f069026c73f317ce503a2ce87ebdeb2ff5aa0132877a0",
-      "kind": "transparent"
-    }
   ],
   "impls": {
     "a555e67778ff01bc5ca40d743829717c4c8c0d4cbdd7cd58b5950b32a5950bfa": {
@@ -2722,6 +2717,239 @@
           "t_uint96": {
             "label": "uint96",
             "numberOfBytes": "12"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "f99d62f59956ef35af7b48bca2c71bbeffef69bbf37e2cd77864e50a7c9df2b8": {
+      "address": "0x5230FE2911DD17B61e291B8D36223928aC772249",
+      "txHash": "0x906c68ed2b80baf47ebac40c38f9a80f1c410575adcf08ce2dfd2dd1f0a564c9",
+      "layout": {
+        "solcVersion": "0.8.18",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "endemicToken",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_contract(IERC20)777",
+            "contract": "TokenLockingPoolBase",
+            "src": "contracts/pool/pools/TokenLockingPoolBase.sol:38"
+          },
+          {
+            "label": "feeReceiver",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_address",
+            "contract": "TokenLockingPoolBase",
+            "src": "contracts/pool/pools/TokenLockingPoolBase.sol:39"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "TokenLockingPoolBase",
+            "src": "contracts/pool/pools/TokenLockingPoolBase.sol:124"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "LiquidTokenLockingPoolBase",
+            "src": "contracts/pool/pools/liquid/LiquidTokenLockingPoolBase.sol:128"
+          },
+          {
+            "label": "liquidLocks",
+            "offset": 0,
+            "slot": "253",
+            "type": "t_mapping(t_address,t_struct(LiquidLock)1666_storage)",
+            "contract": "LiquidTokenLockingPool",
+            "src": "contracts/pool/pools/liquid/variants/LiquidTokenLockingPool.sol:11"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "254",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "LiquidTokenLockingPool",
+            "src": "contracts/pool/pools/liquid/variants/LiquidTokenLockingPool.sol:122"
+          },
+          {
+            "label": "prolongedLiquidLocks",
+            "offset": 0,
+            "slot": "304",
+            "type": "t_mapping(t_address,t_struct(ProlongedLock)2098_storage)",
+            "contract": "ProlongedLiquidTokenLockingPool",
+            "src": "contracts/pool/pools/liquid/variants/ProlongedLiquidTokenLockingPool.sol:20"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "305",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ProlongedLiquidTokenLockingPool",
+            "src": "contracts/pool/pools/liquid/variants/ProlongedLiquidTokenLockingPool.sol:157"
+          },
+          {
+            "label": "permanentLocks",
+            "offset": 0,
+            "slot": "355",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "PermanentTokenLockingPool",
+            "src": "contracts/pool/pools/permanent/PermanentTokenLockingPool.sol:11"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "356",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "PermanentTokenLockingPool",
+            "src": "contracts/pool/pools/permanent/PermanentTokenLockingPool.sol:52"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "406",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "EndemicTokenLockingPool",
+            "src": "contracts/pool/EndemicTokenLockingPool.sol:71"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20)777": {
+            "label": "contract IERC20",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(LiquidLock)1666_storage)": {
+            "label": "mapping(address => struct LiquidTokenLockingPoolBase.LiquidLock)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(ProlongedLock)2098_storage)": {
+            "label": "mapping(address => struct ProlongedLiquidTokenLockingPool.ProlongedLock)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(LiquidLock)1666_storage": {
+            "label": "struct LiquidTokenLockingPoolBase.LiquidLock",
+            "members": [
+              {
+                "label": "amount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "unlockPeriodEndTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(ProlongedLock)2098_storage": {
+            "label": "struct ProlongedLiquidTokenLockingPool.ProlongedLock",
+            "members": [
+              {
+                "label": "liquidLock",
+                "type": "t_struct(LiquidLock)1666_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lockPeriodEndTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
           }
         },
         "namespaces": {}
