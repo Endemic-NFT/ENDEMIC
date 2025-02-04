@@ -13,6 +13,8 @@ const getTypedMessage_sale = ({
   takerCut,
   royaltiesCut,
   royaltiesRecipient,
+  collectiveCut,
+  collectiveRecipient,
   buyer,
 }) => {
   const domain = {
@@ -34,6 +36,8 @@ const getTypedMessage_sale = ({
       { name: 'takerCut', type: 'uint256' },
       { name: 'royaltiesCut', type: 'uint256' },
       { name: 'royaltiesRecipient', type: 'address' },
+      { name: 'collectiveCut', type: 'uint256' },
+      { name: 'collectiveRecipient', type: 'address' },
       { name: 'buyer', type: 'address' },
       { name: 'expiresAt', type: 'uint256' },
     ],
@@ -49,6 +53,8 @@ const getTypedMessage_sale = ({
     takerCut: takerCut,
     royaltiesCut: royaltiesCut,
     royaltiesRecipient: royaltiesRecipient,
+    collectiveCut: collectiveCut,
+    collectiveRecipient: collectiveRecipient,
     buyer: buyer,
     expiresAt: 2000994705,
   };
@@ -68,6 +74,8 @@ const getTypedMessage_offer = ({
   takerCut,
   royaltiesCut,
   royaltiesRecipient,
+  collectiveCut,
+  collectiveRecipient,
   expiresAt,
   isForCollection,
 }) => {
@@ -90,6 +98,8 @@ const getTypedMessage_offer = ({
       { name: 'takerCut', type: 'uint256' },
       { name: 'royaltiesCut', type: 'uint256' },
       { name: 'royaltiesRecipient', type: 'address' },
+      { name: 'collectiveCut', type: 'uint256' },
+      { name: 'collectiveRecipient', type: 'address' },
       { name: 'expiresAt', type: 'uint256' },
       { name: 'isForCollection', type: 'bool' },
     ],
@@ -105,6 +115,8 @@ const getTypedMessage_offer = ({
     takerCut: takerCut,
     royaltiesCut: royaltiesCut,
     royaltiesRecipient: royaltiesRecipient,
+    collectiveCut: collectiveCut,
+    collectiveRecipient: collectiveRecipient,
     expiresAt: expiresAt,
     isForCollection: isForCollection,
   };
@@ -125,6 +137,8 @@ const getTypedMessage_dutch = ({
   takerFeePercentage,
   royaltiesPercentage,
   royaltiesRecipient,
+  collectiveFeePercentage,
+  collectiveRecipient,
   startingAt,
   duration,
 }) => {
@@ -148,6 +162,8 @@ const getTypedMessage_dutch = ({
       { name: 'takerFeePercentage', type: 'uint256' },
       { name: 'royaltiesPercentage', type: 'uint256' },
       { name: 'royaltiesRecipient', type: 'address' },
+      { name: 'collectiveFeePercentage', type: 'uint256' },
+      { name: 'collectiveRecipient', type: 'address' },
       { name: 'startingAt', type: 'uint256' },
       { name: 'duration', type: 'uint256' },
     ],
@@ -164,6 +180,8 @@ const getTypedMessage_dutch = ({
     takerFeePercentage: takerFeePercentage,
     royaltiesPercentage: royaltiesPercentage,
     royaltiesRecipient: royaltiesRecipient,
+    collectiveFeePercentage: collectiveFeePercentage,
+    collectiveRecipient: collectiveRecipient,
     startingAt: startingAt,
     duration: duration,
   };
@@ -183,6 +201,8 @@ const getTypedMessage_reserve = ({
   takerFeePercentage,
   royaltiesPercentage,
   royaltiesRecipient,
+  collectiveFeePercentage,
+  collectiveRecipient,
 }) => {
   const domain = {
     name: 'Endemic Exchange',
@@ -195,27 +215,31 @@ const getTypedMessage_reserve = ({
   const types = {
     ReserveAuction: [
       { name: 'orderNonce', type: 'uint256' },
+      { name: 'price', type: 'uint256' },
       { name: 'nftContract', type: 'address' },
       { name: 'tokenId', type: 'uint256' },
       { name: 'paymentErc20TokenAddress', type: 'address' },
-      { name: 'price', type: 'uint256' },
       { name: 'makerFeePercentage', type: 'uint256' },
       { name: 'takerFeePercentage', type: 'uint256' },
       { name: 'royaltiesPercentage', type: 'uint256' },
       { name: 'royaltiesRecipient', type: 'address' },
+      { name: 'collectiveFeePercentage', type: 'uint256' },
+      { name: 'collectiveRecipient', type: 'address' },
     ],
   };
 
   const values = {
     orderNonce: orderNonce,
+    price: price,
     nftContract: nftContract,
     tokenId: tokenId,
     paymentErc20TokenAddress: paymentErc20TokenAddress,
-    price: price,
     makerFeePercentage: makerFeePercentage,
     takerFeePercentage: takerFeePercentage,
     royaltiesPercentage: royaltiesPercentage,
     royaltiesRecipient: royaltiesRecipient,
+    collectiveFeePercentage: collectiveFeePercentage,
+    collectiveRecipient: collectiveRecipient,
   };
 
   return { domain, types, values };
@@ -233,6 +257,8 @@ const getTypedMessage_reserveBid = ({
   takerFeePercentage,
   royaltiesPercentage,
   royaltiesRecipient,
+  collectiveFeePercentage,
+  collectiveRecipient,
 }) => {
   const domain = {
     name: 'Endemic Exchange',
@@ -245,27 +271,31 @@ const getTypedMessage_reserveBid = ({
   const types = {
     ReserveAuctionBid: [
       { name: 'orderNonce', type: 'uint256' },
+      { name: 'price', type: 'uint256' },
       { name: 'nftContract', type: 'address' },
       { name: 'tokenId', type: 'uint256' },
       { name: 'paymentErc20TokenAddress', type: 'address' },
-      { name: 'price', type: 'uint256' },
       { name: 'makerFeePercentage', type: 'uint256' },
       { name: 'takerFeePercentage', type: 'uint256' },
       { name: 'royaltiesPercentage', type: 'uint256' },
       { name: 'royaltiesRecipient', type: 'address' },
+      { name: 'collectiveFeePercentage', type: 'uint256' },
+      { name: 'collectiveRecipient', type: 'address' },
     ],
   };
 
   const values = {
     orderNonce: orderNonce,
+    price: price,
     nftContract: nftContract,
     tokenId: tokenId,
     paymentErc20TokenAddress: paymentErc20TokenAddress,
-    price: price,
     makerFeePercentage: makerFeePercentage,
     takerFeePercentage: takerFeePercentage,
     royaltiesPercentage: royaltiesPercentage,
     royaltiesRecipient: royaltiesRecipient,
+    collectiveFeePercentage: collectiveFeePercentage,
+    collectiveRecipient: collectiveRecipient,
   };
 
   return { domain, types, values };
@@ -287,6 +317,8 @@ const getTypedMessage_reserveApproval = ({
   takerFeePercentage,
   royaltiesPercentage,
   royaltiesRecipient,
+  collectiveFeePercentage,
+  collectiveRecipient,
 }) => {
   const domain = {
     name: 'Endemic Exchange',
@@ -302,15 +334,17 @@ const getTypedMessage_reserveApproval = ({
       { name: 'bidSigner', type: 'address' },
       { name: 'auctionNonce', type: 'uint256' },
       { name: 'bidNonce', type: 'uint256' },
+      { name: 'auctionPrice', type: 'uint256' },
+      { name: 'bidPrice', type: 'uint256' },
       { name: 'nftContract', type: 'address' },
       { name: 'tokenId', type: 'uint256' },
       { name: 'paymentErc20TokenAddress', type: 'address' },
-      { name: 'auctionPrice', type: 'uint256' },
-      { name: 'bidPrice', type: 'uint256' },
       { name: 'makerFeePercentage', type: 'uint256' },
       { name: 'takerFeePercentage', type: 'uint256' },
       { name: 'royaltiesPercentage', type: 'uint256' },
       { name: 'royaltiesRecipient', type: 'address' },
+      { name: 'collectiveFeePercentage', type: 'uint256' },
+      { name: 'collectiveRecipient', type: 'address' },
     ],
   };
 
@@ -319,15 +353,17 @@ const getTypedMessage_reserveApproval = ({
     bidSigner: bidSigner,
     auctionNonce: auctionNonce,
     bidNonce: bidNonce,
+    auctionPrice: auctionPrice,
+    bidPrice: bidPrice,
     nftContract: nftContract,
     tokenId: tokenId,
     paymentErc20TokenAddress: paymentErc20TokenAddress,
-    auctionPrice: auctionPrice,
-    bidPrice: bidPrice,
     makerFeePercentage: makerFeePercentage,
     takerFeePercentage: takerFeePercentage,
     royaltiesPercentage: royaltiesPercentage,
     royaltiesRecipient: royaltiesRecipient,
+    collectiveFeePercentage: collectiveFeePercentage,
+    collectiveRecipient: collectiveRecipient,
   };
 
   return { domain, types, values };

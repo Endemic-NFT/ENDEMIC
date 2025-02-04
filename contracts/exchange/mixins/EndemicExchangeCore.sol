@@ -7,6 +7,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../manager/interfaces/IPaymentManager.sol";
 
 abstract contract EndemicExchangeCore {
+    struct Fees {
+        uint256 makerCut;
+        uint256 takerCut;
+        uint256 royaltiesCut;
+        uint256 collectiveCut;
+        uint256 totalCut;
+    }
+
     /// @custom:oz-renamed-from royaltiesProvider
     address private royaltiesProvider_deprecated;
     IPaymentManager public paymentManager;
@@ -48,22 +56,16 @@ abstract contract EndemicExchangeCore {
         uint256 price,
         uint256 makerFeePercentage,
         uint256 takerFeePercentage,
-        uint256 royaltiesPercentage
-    )
-        internal
-        pure
-        returns (
-            uint256 makerCut,
-            uint256 takerCut,
-            uint256 royaltiesCut,
-            uint256 totalCut
-        )
-    {
-        takerCut = _calculateCut(takerFeePercentage, price);
-        makerCut = _calculateCut(makerFeePercentage, price);
-        totalCut = takerCut + makerCut;
+        uint256 royaltiesPercentage,
+        uint256 collectiveFeePercentage
+    ) internal pure returns (Fees memory fees) {
+        fees.takerCut = _calculateCut(takerFeePercentage, price);
+        fees.makerCut = _calculateCut(makerFeePercentage, price);
+        fees.totalCut = fees.takerCut + fees.makerCut;
 
-        royaltiesCut = _calculateCut(royaltiesPercentage, price);
+        fees.royaltiesCut = _calculateCut(royaltiesPercentage, price);
+
+        fees.collectiveCut = _calculateCut(collectiveFeePercentage, price);
     }
 
     function _calculateCut(

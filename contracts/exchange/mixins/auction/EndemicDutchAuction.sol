@@ -20,7 +20,7 @@ abstract contract EndemicDutchAuction is
 
     bytes32 private constant DUTCH_AUCTION_TYPEHASH =
         keccak256(
-            "DutchAuction(uint256 orderNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 startingPrice,uint256 endingPrice,uint256 makerFeePercentage,uint256 takerFeePercentage,uint256 royaltiesPercentage,address royaltiesRecipient,uint256 startingAt,uint256 duration)"
+            "DutchAuction(uint256 orderNonce,address nftContract,uint256 tokenId,address paymentErc20TokenAddress,uint256 startingPrice,uint256 endingPrice,uint256 makerFeePercentage,uint256 takerFeePercentage,uint256 royaltiesPercentage,address royaltiesRecipient,uint256 collectiveFeePercentage,address collectiveRecipient,uint256 startingAt,uint256 duration)"
         );
 
     struct DutchAuction {
@@ -34,6 +34,8 @@ abstract contract EndemicDutchAuction is
         uint256 takerFeePercentage;
         uint256 royaltiesPercentage;
         address royaltiesRecipient;
+        uint256 collectiveFeePercentage;
+        address collectiveRecipient;
         uint256 startingAt;
         uint256 duration;
     }
@@ -69,26 +71,22 @@ abstract contract EndemicDutchAuction is
 
         if (currentPrice == 0) revert InvalidPrice();
 
-        (
-            uint256 makerCut,
-            uint256 takerCut,
-            uint256 royaltiesCut,
-            uint256 totalCut
-        ) = _calculateFees(
-                currentPrice,
-                auction.makerFeePercentage,
-                auction.takerFeePercentage,
-                auction.royaltiesPercentage
-            );
+        Fees memory fees = _calculateFees(
+            currentPrice,
+            auction.makerFeePercentage,
+            auction.takerFeePercentage,
+            auction.royaltiesPercentage,
+            auction.collectiveFeePercentage
+        );
 
         currentPrice = _determinePriceByPaymentMethod(
             auction.paymentErc20TokenAddress,
             currentPrice,
-            takerCut
+            fees.takerCut
         );
 
         _requireSufficientCurrencySupplied(
-            currentPrice + takerCut,
+            currentPrice + fees.takerCut,
             auction.paymentErc20TokenAddress,
             msg.sender
         );
@@ -101,10 +99,12 @@ abstract contract EndemicDutchAuction is
 
         _distributeFunds(
             currentPrice,
-            makerCut,
-            totalCut,
-            royaltiesCut,
+            fees.makerCut,
+            fees.totalCut,
+            fees.royaltiesCut,
             auction.royaltiesRecipient,
+            fees.collectiveCut,
+            auction.collectiveRecipient,
             seller,
             msg.sender,
             auction.paymentErc20TokenAddress
@@ -116,7 +116,7 @@ abstract contract EndemicDutchAuction is
             currentPrice,
             seller,
             msg.sender,
-            totalCut,
+            fees.totalCut,
             auction.paymentErc20TokenAddress
         );
     }

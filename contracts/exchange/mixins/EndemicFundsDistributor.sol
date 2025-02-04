@@ -16,11 +16,16 @@ abstract contract EndemicFundsDistributor {
         uint256 totalCut,
         uint256 royaltiesCut,
         address royaltiesRecipient,
+        uint256 collectiveCut,
+        address collectiveRecipient,
         address seller,
         address buyer,
         address paymentErc20TokenAddress
     ) internal {
-        uint256 sellerProceeds = price - makerCut - royaltiesCut;
+        uint256 sellerProceeds = price -
+            makerCut -
+            royaltiesCut -
+            collectiveCut;
 
         if (paymentErc20TokenAddress == address(0)) {
             _distributeEtherFunds(
@@ -28,6 +33,8 @@ abstract contract EndemicFundsDistributor {
                 totalCut,
                 sellerProceeds,
                 royaltiesRecipient,
+                collectiveCut,
+                collectiveRecipient,
                 seller
             );
         } else {
@@ -36,6 +43,8 @@ abstract contract EndemicFundsDistributor {
                 totalCut,
                 sellerProceeds,
                 royaltiesRecipient,
+                collectiveCut,
+                collectiveRecipient,
                 seller,
                 buyer,
                 paymentErc20TokenAddress
@@ -48,6 +57,8 @@ abstract contract EndemicFundsDistributor {
         uint256 totalCut,
         uint256 sellerProceeds,
         address royaltiesRecipient,
+        uint256 collectiveCut,
+        address collectiveRecipient,
         address seller
     ) internal {
         if (royaltiesCut > 0) {
@@ -58,6 +69,10 @@ abstract contract EndemicFundsDistributor {
             _transferEtherFees(totalCut);
         }
 
+        if (collectiveCut > 0) {
+            _transferEtherFunds(collectiveRecipient, collectiveCut);
+        }
+
         _transferEtherFunds(seller, sellerProceeds);
     }
 
@@ -66,6 +81,8 @@ abstract contract EndemicFundsDistributor {
         uint256 totalCut,
         uint256 sellerProceeds,
         address royaltiesRecipient,
+        uint256 collectiveCut,
+        address collectiveRecipient,
         address seller,
         address buyer,
         address paymentErc20TokenAddress
@@ -83,6 +100,15 @@ abstract contract EndemicFundsDistributor {
 
         if (totalCut > 0) {
             _transferErc20Fees(ERC20PaymentToken, buyer, totalCut);
+        }
+
+        if (collectiveCut > 0) {
+            _transferErc20Funds(
+                ERC20PaymentToken,
+                buyer,
+                collectiveRecipient,
+                collectiveCut
+            );
         }
 
         _transferErc20Funds(ERC20PaymentToken, buyer, seller, sellerProceeds);
