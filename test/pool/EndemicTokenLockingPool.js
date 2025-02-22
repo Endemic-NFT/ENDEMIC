@@ -78,7 +78,7 @@ describe('EndemicTokenLockingPool', function () {
       Errors.InsufficientAmount
     );
 
-    // Test for prolonged liquid lock
+    // Test for short prolonged liquid lock
     await expect(
       endemicTokenLockingPool.connect(addr1).shortProlongedLiquidLock(0)
     ).to.be.revertedWithCustomError(
@@ -86,7 +86,7 @@ describe('EndemicTokenLockingPool', function () {
       Errors.InsufficientAmount
     );
 
-    // Test for permanent lock
+    // Test for long prolonged liquid lock
     await expect(
       endemicTokenLockingPool.connect(addr1).longProlongedLiquidLock(0)
     ).to.be.revertedWithCustomError(
