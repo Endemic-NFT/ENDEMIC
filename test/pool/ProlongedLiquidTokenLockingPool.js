@@ -31,25 +31,50 @@ describe('ProlongedLiquidTokenLockingPool', function () {
   });
 
   describe('Prolonged Locking', function () {
-    it('Should lock tokens with a prolonged lock period', async function () {
+    it('Should lock tokens with a short prolonged lock period', async function () {
       await endemicToken
         .connect(addr1)
         .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
 
       const lockTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
       const currentTimestamp = await getCurrentTimestamp();
 
       await expect(lockTx)
         .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
-          PoolType.ProlongedLiquid,
+          PoolType.ShortProlongedLiquid,
           ActivityType.Lock,
           addr1.address,
           Currencies.ONE_ETHER,
-          currentTimestamp + TimePeriods.TWO_YEARS
+          currentTimestamp + TimePeriods.SIX_MONTHS
+        );
+
+      const balance = await endemicToken.balanceOf(addr1.address);
+      expect(balance).to.equal(Currencies.FIVE_ETHER.sub(Currencies.ONE_ETHER));
+    });
+
+    it('Should lock tokens with a long prolonged lock period', async function () {
+      await endemicToken
+        .connect(addr1)
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+
+      const lockTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
+
+      const currentTimestamp = await getCurrentTimestamp();
+
+      await expect(lockTx)
+        .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
+        .withArgs(
+          PoolType.LongProlongedLiquid,
+          ActivityType.Lock,
+          addr1.address,
+          Currencies.ONE_ETHER,
+          currentTimestamp + TimePeriods.ONE_YEAR
         );
 
       const balance = await endemicToken.balanceOf(addr1.address);
@@ -57,37 +82,73 @@ describe('ProlongedLiquidTokenLockingPool', function () {
     });
 
     it('Should revert when trying to lock 0 tokens', async function () {
-      const lockTx = prolongedLiquidTokenLockingPool
+      const lockShortTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(0);
+        .shortProlongedLiquidLock(0);
 
-      await expect(lockTx).to.be.revertedWithCustomError(
+      const lockLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .longProlongedLiquidLock(0);
+
+      await expect(lockShortTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+
+      await expect(lockLongTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.InsufficientAmount
       );
     });
 
-    it('Should start the unlock period for the prolonged lock', async function () {
+    it('Should start the unlock period for the short prolonged lock', async function () {
       await endemicToken
         .connect(addr1)
         .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      await fastForwardTime(TimePeriods.TWO_YEARS);
+      await fastForwardTime(TimePeriods.SIX_MONTHS);
 
       const startUnlockTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .startProlongedLiquidLockUnlockPeriod();
+        .startShortProlongedLiquidLockUnlockPeriod();
 
       const currentTimestamp = await getCurrentTimestamp();
 
       await expect(startUnlockTx)
         .to.emit(prolongedLiquidTokenLockingPool, Events.UnlockPeriodStarted)
         .withArgs(
-          PoolType.ProlongedLiquid,
+          PoolType.ShortProlongedLiquid,
+          addr1.address,
+          Currencies.ONE_ETHER,
+          currentTimestamp + TimePeriods.FOUR_WEEKS
+        );
+    });
+
+    it('Should start the unlock period for the long prolonged lock', async function () {
+      await endemicToken
+        .connect(addr1)
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+
+      await prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
+
+      await fastForwardTime(TimePeriods.ONE_YEAR);
+
+      const startUnlockTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .startLongProlongedLiquidLockUnlockPeriod();
+
+      const currentTimestamp = await getCurrentTimestamp();
+
+      await expect(startUnlockTx)
+        .to.emit(prolongedLiquidTokenLockingPool, Events.UnlockPeriodStarted)
+        .withArgs(
+          PoolType.LongProlongedLiquid,
           addr1.address,
           Currencies.ONE_ETHER,
           currentTimestamp + TimePeriods.FOUR_WEEKS
@@ -97,17 +158,30 @@ describe('ProlongedLiquidTokenLockingPool', function () {
     it('Should fail to start unlock period if lock period is not finished', async function () {
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      const startUnlockTx = prolongedLiquidTokenLockingPool
+      await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .startProlongedLiquidLockUnlockPeriod();
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      await expect(startUnlockTx).to.be.revertedWithCustomError(
+      const startShortUnlockTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .startShortProlongedLiquidLockUnlockPeriod();
+
+      const startLongUnlockTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .startLongProlongedLiquidLockUnlockPeriod();
+
+      await expect(startShortUnlockTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.LockPeriodNotFinished
+      );
+
+      await expect(startLongUnlockTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.LockPeriodNotFinished
       );
@@ -116,23 +190,40 @@ describe('ProlongedLiquidTokenLockingPool', function () {
     it('Should fail to withdraw tokens if lock period is finished but unlock period is not finished', async function () {
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
-
-      await fastForwardTime(TimePeriods.TWO_YEARS);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .startProlongedLiquidLockUnlockPeriod();
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      const withdrawTx = prolongedLiquidTokenLockingPool
+      await fastForwardTime(TimePeriods.ONE_YEAR);
+
+      await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .withdrawProlongedLiquidLock();
+        .startShortProlongedLiquidLockUnlockPeriod();
 
-      await expect(withdrawTx).to.be.revertedWithCustomError(
+      await prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .startLongProlongedLiquidLockUnlockPeriod();
+
+      const withdrawShortTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawShortProlongedLiquidLock();
+
+      const withdrawLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLongProlongedLiquidLock();
+
+      await expect(withdrawShortTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.UnlockPeriodNotFinished
+      );
+
+      await expect(withdrawLongTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.UnlockPeriodNotFinished
       );
@@ -141,19 +232,32 @@ describe('ProlongedLiquidTokenLockingPool', function () {
     it('Should fail to withdraw tokens if lock period is finished but unlock period is not started', async function () {
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      await fastForwardTime(TimePeriods.TWO_YEARS);
-
-      const withdrawTx = prolongedLiquidTokenLockingPool
+      await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .withdrawProlongedLiquidLock();
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      await expect(withdrawTx).to.be.revertedWithCustomError(
+      await fastForwardTime(TimePeriods.ONE_YEAR);
+
+      const withdrawShortTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawShortProlongedLiquidLock();
+
+      const withdrawLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLongProlongedLiquidLock();
+
+      await expect(withdrawShortTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.UnlockPeriodNotFinished
+      );
+
+      await expect(withdrawLongTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.UnlockPeriodNotFinished
       );
@@ -162,28 +266,52 @@ describe('ProlongedLiquidTokenLockingPool', function () {
     it('Should withdraw tokens after lock period ends', async function () {
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
-
-      await fastForwardTime(TimePeriods.TWO_YEARS);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .startProlongedLiquidLockUnlockPeriod();
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
+
+      await fastForwardTime(TimePeriods.SIX_MONTHS);
+
+      await prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .startShortProlongedLiquidLockUnlockPeriod();
+
+      await fastForwardTime(TimePeriods.SIX_MONTHS);
+
+      await prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .startLongProlongedLiquidLockUnlockPeriod();
 
       await fastForwardTime(TimePeriods.FOUR_WEEKS);
 
-      const withdrawTx = prolongedLiquidTokenLockingPool
+      const withdrawShortTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .withdrawProlongedLiquidLock();
+        .withdrawShortProlongedLiquidLock();
 
-      await expect(withdrawTx)
+      const withdrawLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLongProlongedLiquidLock();
+
+      await expect(withdrawShortTx)
         .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
-          PoolType.ProlongedLiquid,
+          PoolType.ShortProlongedLiquid,
+          ActivityType.Withdraw,
+          addr1.address,
+          Currencies.ONE_ETHER,
+          0
+        );
+
+      await expect(withdrawLongTx)
+        .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
+        .withArgs(
+          PoolType.LongProlongedLiquid,
           ActivityType.Withdraw,
           addr1.address,
           Currencies.ONE_ETHER,
@@ -197,53 +325,84 @@ describe('ProlongedLiquidTokenLockingPool', function () {
     it('Should immediately withdraw tokens and pay removal fee after lock period ends', async function () {
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      await fastForwardTime(TimePeriods.TWO_YEARS);
+      await prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
+
+      await fastForwardTime(TimePeriods.ONE_YEAR);
 
       const initialOwnerBalance = await endemicToken.balanceOf(owner.address);
 
-      const withdrawTx = prolongedLiquidTokenLockingPool
+      const withdrawShortTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .withdrawProlongedLiquidLockImmediately();
+        .withdrawShortProlongedLiquidLockImmediately();
 
-      await expect(withdrawTx)
+      const withdrawLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLongProlongedLiquidLockImmediately();
+
+      await expect(withdrawShortTx)
         .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
         .withArgs(
-          PoolType.ProlongedLiquid,
+          PoolType.ShortProlongedLiquid,
           ActivityType.Withdraw,
           addr1.address,
           Currencies.ONE_ETHER,
           0
         );
 
-      const expectedBalance = ethers.utils.parseEther('4.9'); // 5 - 1 + (1 - 0.1 fee)
+      await expect(withdrawLongTx)
+        .to.emit(prolongedLiquidTokenLockingPool, Events.TokenActivity)
+        .withArgs(
+          PoolType.LongProlongedLiquid,
+          ActivityType.Withdraw,
+          addr1.address,
+          Currencies.ONE_ETHER,
+          0
+        );
+
+      const expectedBalance = ethers.utils.parseEther('4.8'); // 5 - 1 + (1 - 0.1 * 2 fee)
       const balance = await endemicToken.balanceOf(addr1.address);
       expect(balance).to.equal(expectedBalance);
 
       const finalOwnerBalance = await endemicToken.balanceOf(owner.address);
-      const fee = ethers.utils.parseEther('0.1'); // 10% fee
+      const fee = ethers.utils.parseEther('0.2'); // 10% * 2 fee
       expect(finalOwnerBalance.sub(initialOwnerBalance)).to.equal(fee);
     });
 
     it('Should fail to immediately withdraw tokens if lock period is not finished', async function () {
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      const withdrawTx = prolongedLiquidTokenLockingPool
+      await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .withdrawProlongedLiquidLockImmediately();
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      await expect(withdrawTx).to.be.revertedWithCustomError(
+      const withdrawShortTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawShortProlongedLiquidLockImmediately();
+
+      const withdrawLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLongProlongedLiquidLockImmediately();
+
+      await expect(withdrawShortTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.LockPeriodNotFinished
+      );
+
+      await expect(withdrawLongTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.LockPeriodNotFinished
       );
@@ -252,29 +411,46 @@ describe('ProlongedLiquidTokenLockingPool', function () {
     it('Should prolong the lock time if new tokens are locked while lock period is not finished', async function () {
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
+
+      await prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
 
       await fastForwardTime(TimePeriods.FOUR_WEEKS);
 
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      await fastForwardTime(TimePeriods.TWO_YEARS - TimePeriods.FOUR_WEEKS);
-
-      const withdrawTx = prolongedLiquidTokenLockingPool
+      await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .withdrawProlongedLiquidLockImmediately();
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
 
-      await expect(withdrawTx).to.be.revertedWithCustomError(
+      await fastForwardTime(TimePeriods.SIX_MONTHS - TimePeriods.FOUR_WEEKS);
+
+      const withdrawShortTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawShortProlongedLiquidLockImmediately();
+
+      const withdrawLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLongProlongedLiquidLockImmediately();
+
+      await expect(withdrawShortTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.LockPeriodNotFinished
+      );
+
+      await expect(withdrawLongTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.LockPeriodNotFinished
       );
@@ -283,41 +459,79 @@ describe('ProlongedLiquidTokenLockingPool', function () {
     it('Should get prolonged lock stats', async function () {
       await endemicToken
         .connect(addr1)
-        .approve(prolongedLiquidTokenLockingPool.address, Currencies.ONE_ETHER);
+        .approve(prolongedLiquidTokenLockingPool.address, Currencies.TWO_ETHER);
 
       await prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
+
+      await prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
+
+      const stats = await prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .getProlongedLiquidPoolStats(addr1.address);
+
+      expect(stats[0]).to.equal(Currencies.ONE_ETHER);
+      expect(stats[1]).to.equal(Currencies.ONE_ETHER);
     });
 
     it('Should revert when trying to start unlock period with 0 tokens locked', async function () {
-      const startUnlockTx = prolongedLiquidTokenLockingPool
+      const startShortUnlockTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .startProlongedLiquidLockUnlockPeriod();
+        .startShortProlongedLiquidLockUnlockPeriod();
 
-      await expect(startUnlockTx).to.be.revertedWithCustomError(
+      const startLongUnlockTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .startLongProlongedLiquidLockUnlockPeriod();
+
+      await expect(startShortUnlockTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+
+      await expect(startLongUnlockTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.InsufficientAmount
       );
     });
 
     it('Should revert when trying to withdraw with 0 tokens locked', async function () {
-      const withdrawTx = prolongedLiquidTokenLockingPool
+      const withdrawShortTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .withdrawProlongedLiquidLock();
+        .withdrawShortProlongedLiquidLock();
 
-      await expect(withdrawTx).to.be.revertedWithCustomError(
+      const withdrawLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLongProlongedLiquidLock();
+
+      await expect(withdrawShortTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+
+      await expect(withdrawLongTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.InsufficientAmount
       );
     });
 
     it('Should revert when trying to immediately withdraw with 0 tokens locked', async function () {
-      const withdrawImmediatelyTx = prolongedLiquidTokenLockingPool
+      const withdrawImmediatelyShortTx = prolongedLiquidTokenLockingPool
         .connect(addr1)
-        .withdrawProlongedLiquidLockImmediately();
+        .withdrawShortProlongedLiquidLockImmediately();
 
-      await expect(withdrawImmediatelyTx).to.be.revertedWithCustomError(
+      const withdrawImmediatelyLongTx = prolongedLiquidTokenLockingPool
+        .connect(addr1)
+        .withdrawLongProlongedLiquidLockImmediately();
+
+      await expect(withdrawImmediatelyShortTx).to.be.revertedWithCustomError(
+        prolongedLiquidTokenLockingPool,
+        Errors.InsufficientAmount
+      );
+
+      await expect(withdrawImmediatelyLongTx).to.be.revertedWithCustomError(
         prolongedLiquidTokenLockingPool,
         Errors.InsufficientAmount
       );

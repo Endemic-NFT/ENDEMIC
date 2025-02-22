@@ -7,8 +7,8 @@ const ActivityType = {
 
 const PoolType = {
   Liquid: 0,
-  ProlongedLiquid: 1,
-  Permanent: 2,
+  ShortProlongedLiquid: 1,
+  LongProlongedLiquid: 2,
 };
 
 const Events = {
@@ -26,7 +26,8 @@ const Errors = {
 
 const TimePeriods = {
   FOUR_WEEKS: 4 * 7 * 24 * 60 * 60,
-  TWO_YEARS: 63_158_400, //2 years considering leap years in seconds,
+  SIX_MONTHS: 15_778_463, // 6 months in seconds
+  ONE_YEAR: 31_556_926, // 1 year in seconds
 };
 
 function generateCurrencies() {

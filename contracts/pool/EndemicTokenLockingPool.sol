@@ -3,22 +3,20 @@ pragma solidity 0.8.18;
 
 import "./pools/liquid/variants/LiquidTokenLockingPool.sol";
 import "./pools/liquid/variants/ProlongedLiquidTokenLockingPool.sol";
-import "./pools/permanent/PermanentTokenLockingPool.sol";
 
 /**
  * @title EndemicTokenLockingPool
- * @dev Utilizes functionalities of liquid and permanent pools
+ * @dev Utilizes functionalities of liquid pools
  */
 
 contract EndemicTokenLockingPool is
     LiquidTokenLockingPool,
-    ProlongedLiquidTokenLockingPool,
-    PermanentTokenLockingPool
+    ProlongedLiquidTokenLockingPool
 {
     struct PoolStats {
-        uint256 permanentLock;
         uint256 liquidLock;
-        uint256 prolongedLiquidLock;
+        uint256 shortProlongedLiquidLock;
+        uint256 longProlongedLiquidLock;
     }
 
     /**
@@ -40,26 +38,22 @@ contract EndemicTokenLockingPool is
     /**
      * @notice Get the pool stats for a specific account
      * @param account Address of the account to get the stats for
-     * @return stats PoolStats structure containing permanentLock, liquidLock, and prolongedLiquidLock
+     * @return stats PoolStats structure containing liquidLock, and prolongedLiquidLock
      */
     function getPoolStats(address account)
         external
         view
         returns (PoolStats memory)
     {
-        uint256 permanentLock = PermanentTokenLockingPool.getPermanentPoolStats(
-            account
-        );
+        uint256 liquidAmount = LiquidTokenLockingPool.getLiquidPoolStats(account);
 
-        uint256 liquidLock = LiquidTokenLockingPool.getLiquidPoolStats(account);
-
-        uint256 prolongedLiquidLock = ProlongedLiquidTokenLockingPool
+        (uint256 shortProlongedLiquidAmount, uint256 longProlongedLiquidAmount) = ProlongedLiquidTokenLockingPool
             .getProlongedLiquidPoolStats(account);
 
         PoolStats memory stats = PoolStats({
-            permanentLock: permanentLock,
-            liquidLock: liquidLock,
-            prolongedLiquidLock: prolongedLiquidLock
+            liquidLock: liquidAmount,
+            shortProlongedLiquidLock: shortProlongedLiquidAmount,
+            longProlongedLiquidLock: longProlongedLiquidAmount
         });
 
         return stats;
