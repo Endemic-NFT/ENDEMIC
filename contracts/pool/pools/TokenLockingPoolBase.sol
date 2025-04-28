@@ -31,8 +31,8 @@ abstract contract TokenLockingPoolBase is
      */
     enum PoolType {
         Liquid,
-        ProlongedLiquid,
-        Permanent
+        ShortProlongedLiquid,
+        LongProlongedLiquid
     }
 
     IERC20 internal endemicToken;

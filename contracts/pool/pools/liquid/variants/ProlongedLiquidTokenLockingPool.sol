@@ -13,65 +13,194 @@ abstract contract ProlongedLiquidTokenLockingPool is
     struct ProlongedLock {
         LiquidLock liquidLock;
         uint256 lockPeriodEndTime;
+        bool isLong;
     }
 
-    uint256 internal constant LOCK_PERIOD = 63_158_400; // 2 years considering leap years in seconds
+    uint256 internal constant SHORT_LOCK_PERIOD = 15_778_463; // 1 year in seconds
+    uint256 internal constant LONG_LOCK_PERIOD = 31_556_926; // 6 months in seconds
 
-    mapping(address account => ProlongedLock prolongedLiquidLock) internal prolongedLiquidLocks;
+    mapping(address account => ProlongedLock prolongedLiquidLock)
+        internal shortProlongedLiquidLocks;
+    mapping(address account => ProlongedLock prolongedLiquidLock)
+        internal longProlongedLiquidLocks;
 
     error LockPeriodNotFinished();
 
     /**
-     * @notice Locks tokens in the liquid pool with a prolonged lock period
+     * @notice Locks tokens in the liquid pool with a short prolonged lock period
      * @param amount The amount of tokens to lock
      */
-    function prolongedLiquidLock(uint256 amount)
+    function shortProlongedLiquidLock(
+        uint256 amount
+    ) external onlySufficientAmount(amount) nonReentrant {
+        _prolongedLiquidLock(amount, PoolType.ShortProlongedLiquid);
+    }
+
+    /**
+     * @notice Locks tokens in the liquid pool with a long prolonged lock period
+     * @param amount The amount of tokens to lock
+     */
+    function longProlongedLiquidLock(
+        uint256 amount
+    ) external onlySufficientAmount(amount) nonReentrant {
+        _prolongedLiquidLock(amount, PoolType.LongProlongedLiquid);
+    }
+
+    /**
+     * @notice Immediately withdraws locked tokens from the short prolonged liquid pool
+     * and pays the unlock period removal fee
+     */
+    function withdrawShortProlongedLiquidLockImmediately()
         external
-        onlySufficientAmount(amount)
         nonReentrant
     {
-        ProlongedLock memory prolongedLockInfo = prolongedLiquidLocks[
-            msg.sender
-        ];
+        _withdrawProlongedLiquidLockImmediately(PoolType.ShortProlongedLiquid);
+    }
+
+    /**
+     * @notice Immediately withdraws locked tokens from the long prolonged liquid pool
+     * and pays the unlock period removal fee
+     */
+    function withdrawLongProlongedLiquidLockImmediately()
+        external
+        nonReentrant
+    {
+        _withdrawProlongedLiquidLockImmediately(PoolType.LongProlongedLiquid);
+    }
+
+    /**
+     * @notice Starts the unlock period for the short prolonged lock
+     */
+    function startShortProlongedLiquidLockUnlockPeriod() external nonReentrant {
+        _startProlongedLiquidLockUnlockPeriod(PoolType.ShortProlongedLiquid);
+    }
+
+    /**
+     * @notice Starts the unlock period for the long prolonged lock
+     */
+    function startLongProlongedLiquidLockUnlockPeriod() external nonReentrant {
+        _startProlongedLiquidLockUnlockPeriod(PoolType.LongProlongedLiquid);
+    }
+
+    /**
+     * @notice Withdraws locked tokens from short prolonged liquid pool after finishing the lock period
+     */
+    function withdrawShortProlongedLiquidLock() external nonReentrant {
+        _withdrawProlongedLiquidLock(PoolType.ShortProlongedLiquid);
+    }
+
+    /**
+     * @notice Withdraws locked tokens from long prolonged liquid pool after finishing the lock period
+     */
+    function withdrawLongProlongedLiquidLock() external nonReentrant {
+        _withdrawProlongedLiquidLock(PoolType.LongProlongedLiquid);
+    }
+
+    /**
+     * @notice Gets the prolonged liquid lock stats for a specific account
+     * @param account Address of the account to get the stats for
+     * @return shortLockAmount The amount of tokens locked in the short prolonged liquid pool
+     * @return longLockAmount The amount of tokens locked in the long prolonged liquid pool
+     */
+    function getProlongedLiquidPoolStats(
+        address account
+    ) public view returns (uint256 shortLockAmount, uint256 longLockAmount) {
+        return (
+            shortProlongedLiquidLocks[account].liquidLock.amount,
+            longProlongedLiquidLocks[account].liquidLock.amount
+        );
+    }
+
+    function _revertIfLockPeriodNotFinished(
+        uint256 lockPeriodEndTime
+    ) internal view {
+        if (block.timestamp < lockPeriodEndTime) {
+            revert LockPeriodNotFinished();
+        }
+    }
+
+    /**
+     * @dev Internal function to to lock tokens in liquid pool with a prolonged lock period
+     * @param amount The amount of tokens to lock
+     * @param poolType The type of pool
+     */
+    function _prolongedLiquidLock(uint256 amount, PoolType poolType) internal {
+        ProlongedLock memory prolongedLockInfo = poolType ==
+            PoolType.ShortProlongedLiquid
+            ? shortProlongedLiquidLocks[msg.sender]
+            : longProlongedLiquidLocks[msg.sender];
 
         uint256 newLockAmount = prolongedLockInfo.liquidLock.amount + amount;
 
-        prolongedLiquidLocks[msg.sender] = ProlongedLock({
-            liquidLock: LiquidLock({
-                amount: newLockAmount,
-                unlockPeriodEndTime: 0
-            }),
-            lockPeriodEndTime: block.timestamp + LOCK_PERIOD
-        });
+        if (poolType == PoolType.ShortProlongedLiquid) {
+            shortProlongedLiquidLocks[msg.sender] = ProlongedLock({
+                liquidLock: LiquidLock({
+                    amount: newLockAmount,
+                    unlockPeriodEndTime: 0
+                }),
+                lockPeriodEndTime: block.timestamp + SHORT_LOCK_PERIOD,
+                isLong: false
+            });
+        } else {
+            longProlongedLiquidLocks[msg.sender] = ProlongedLock({
+                liquidLock: LiquidLock({
+                    amount: newLockAmount,
+                    unlockPeriodEndTime: 0
+                }),
+                lockPeriodEndTime: block.timestamp + LONG_LOCK_PERIOD,
+                isLong: true
+            });
+        }
 
         _lockTokens(amount);
 
         emit TokenActivity(
-            PoolType.ProlongedLiquid,
+            poolType,
             ActivityType.Lock,
             msg.sender,
             newLockAmount,
-            prolongedLiquidLocks[msg.sender].lockPeriodEndTime
+            poolType == PoolType.ShortProlongedLiquid
+                ? shortProlongedLiquidLocks[msg.sender].lockPeriodEndTime
+                : longProlongedLiquidLocks[msg.sender].lockPeriodEndTime
         );
     }
 
     /**
-     * @notice Immediately withdraws locked tokens and pays the unlock period removal fee
+     * @dev Internal function to withdraw prolonged liquid lock immediately
+     * @param poolType The type of pool
      */
-    function withdrawProlongedLiquidLockImmediately() external nonReentrant {
-        ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
+    function _withdrawProlongedLiquidLockImmediately(
+        PoolType poolType
+    ) internal {
+        ProlongedLock memory prolongedLock;
+        if (poolType == PoolType.ShortProlongedLiquid) {
+            prolongedLock = shortProlongedLiquidLocks[msg.sender];
 
-        _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
-        _revertIfAmountIsZero(prolongedLock.liquidLock.amount);
-        prolongedLiquidLocks[msg.sender] = ProlongedLock({
-            liquidLock: LiquidLock(0, 0),
-            lockPeriodEndTime: 0
-        });
+            _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
+            _revertIfAmountIsZero(prolongedLock.liquidLock.amount);
+
+            shortProlongedLiquidLocks[msg.sender] = ProlongedLock({
+                liquidLock: LiquidLock(0, 0),
+                lockPeriodEndTime: 0,
+                isLong: false
+            });
+        } else {
+            prolongedLock = longProlongedLiquidLocks[msg.sender];
+
+            _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
+            _revertIfAmountIsZero(prolongedLock.liquidLock.amount);
+
+            longProlongedLiquidLocks[msg.sender] = ProlongedLock({
+                liquidLock: LiquidLock(0, 0),
+                lockPeriodEndTime: 0,
+                isLong: false
+            });
+        }
 
         _withdrawImmediately(prolongedLock.liquidLock);
 
         emit TokenActivity(
-            PoolType.ProlongedLiquid,
+            poolType,
             ActivityType.Withdraw,
             msg.sender,
             prolongedLock.liquidLock.amount,
@@ -80,10 +209,16 @@ abstract contract ProlongedLiquidTokenLockingPool is
     }
 
     /**
-     * @notice Starts the unlock period for the prolonged lock
+     * @dev Internal function to start the unlock period for the prolonged lock
+     * @param poolType The type of pool
      */
-    function startProlongedLiquidLockUnlockPeriod() external nonReentrant {
-        ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
+    function _startProlongedLiquidLockUnlockPeriod(PoolType poolType) internal {
+        ProlongedLock memory prolongedLock;
+        if (poolType == PoolType.ShortProlongedLiquid) {
+            prolongedLock = shortProlongedLiquidLocks[msg.sender];
+        } else {
+            prolongedLock = longProlongedLiquidLocks[msg.sender];
+        }
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
         _revertIfAmountIsZero(prolongedLock.liquidLock.amount);
@@ -92,13 +227,22 @@ abstract contract ProlongedLiquidTokenLockingPool is
             prolongedLock.liquidLock
         );
 
-        prolongedLiquidLocks[msg.sender] = ProlongedLock({
-            liquidLock: liquidLock,
-            lockPeriodEndTime: prolongedLock.lockPeriodEndTime
-        });
+        if (poolType == PoolType.ShortProlongedLiquid) {
+            shortProlongedLiquidLocks[msg.sender] = ProlongedLock({
+                liquidLock: liquidLock,
+                lockPeriodEndTime: prolongedLock.lockPeriodEndTime,
+                isLong: false
+            });
+        } else {
+            longProlongedLiquidLocks[msg.sender] = ProlongedLock({
+                liquidLock: liquidLock,
+                lockPeriodEndTime: prolongedLock.lockPeriodEndTime,
+                isLong: true
+            });
+        }
 
         emit UnlockPeriodStarted(
-            PoolType.ProlongedLiquid,
+            poolType,
             msg.sender,
             liquidLock.amount,
             liquidLock.unlockPeriodEndTime
@@ -106,49 +250,41 @@ abstract contract ProlongedLiquidTokenLockingPool is
     }
 
     /**
-     * @notice Withdraws locked tokens after finishing the lock period
+     * @dev Internal function to withdraw prolonged liquid lock
+     * @param poolType The type of pool
      */
-    function withdrawProlongedLiquidLock() external nonReentrant {
-        ProlongedLock memory prolongedLock = prolongedLiquidLocks[msg.sender];
+    function _withdrawProlongedLiquidLock(PoolType poolType) internal {
+        ProlongedLock memory prolongedLock = poolType ==
+            PoolType.ShortProlongedLiquid
+            ? shortProlongedLiquidLocks[msg.sender]
+            : longProlongedLiquidLocks[msg.sender];
 
         _revertIfLockPeriodNotFinished(prolongedLock.lockPeriodEndTime);
         _revertIfAmountIsZero(prolongedLock.liquidLock.amount);
-        prolongedLiquidLocks[msg.sender] = ProlongedLock({
-            liquidLock: LiquidLock(0, 0),
-            lockPeriodEndTime: 0
-        });
+
+        if (poolType == PoolType.ShortProlongedLiquid) {
+            shortProlongedLiquidLocks[msg.sender] = ProlongedLock({
+                liquidLock: LiquidLock(0, 0),
+                lockPeriodEndTime: 0,
+                isLong: false
+            });
+        } else {
+            longProlongedLiquidLocks[msg.sender] = ProlongedLock({
+                liquidLock: LiquidLock(0, 0),
+                lockPeriodEndTime: 0,
+                isLong: false
+            });
+        }
 
         _withdraw(prolongedLock.liquidLock);
 
         emit TokenActivity(
-            PoolType.ProlongedLiquid,
+            poolType,
             ActivityType.Withdraw,
             msg.sender,
             prolongedLock.liquidLock.amount,
             0
         );
-    }
-
-    /**
-     * @notice Gets the prolonged liquid lock stats for a specific account
-     * @param account Address of the account to get the stats for
-     * @return The amount of tokens locked by the account
-     */
-    function getProlongedLiquidPoolStats(address account)
-        public
-        view
-        returns (uint256)
-    {
-        return prolongedLiquidLocks[account].liquidLock.amount;
-    }
-
-    function _revertIfLockPeriodNotFinished(uint256 lockPeriodEndTime)
-        internal
-        view
-    {
-        if (block.timestamp < lockPeriodEndTime) {
-            revert LockPeriodNotFinished();
-        }
     }
 
     /**

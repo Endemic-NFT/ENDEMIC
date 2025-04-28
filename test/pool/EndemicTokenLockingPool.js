@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const { deployEndemicTokenPoolWithDeps } = require('../helpers/deploy');
 const { fastForwardTime } = require('../helpers/time');
-const { Currencies, TimePeriods, Errors } = require('./constants');
+const { Currencies, TimePeriods, Errors, PoolType } = require('./constants');
 
 describe('EndemicTokenLockingPool', function () {
   let owner, addr1, addr2, endemicToken, endemicTokenLockingPool, snapshotId;
@@ -24,15 +24,7 @@ describe('EndemicTokenLockingPool', function () {
   });
 
   describe('getPoolStats', function () {
-    it('Should return correct stats for permanent, liquid, and prolonged locks', async function () {
-      // Approve and lock tokens in the permanent pool
-      await endemicToken
-        .connect(addr1)
-        .approve(endemicTokenLockingPool.address, Currencies.ONE_ETHER);
-      await endemicTokenLockingPool
-        .connect(addr1)
-        .permanentLock(Currencies.ONE_ETHER);
-
+    it('Should return correct stats for liquid, and prolonged locks', async function () {
       // Approve and lock tokens in the liquid pool
       await endemicToken
         .connect(addr1)
@@ -41,43 +33,43 @@ describe('EndemicTokenLockingPool', function () {
         .connect(addr1)
         .liquidLock(Currencies.ONE_ETHER);
 
-      // Approve and lock tokens in the prolonged pool
+      // Approve and lock tokens in the short prolonged pool
       await endemicToken
         .connect(addr1)
         .approve(endemicTokenLockingPool.address, Currencies.ONE_ETHER);
       await endemicTokenLockingPool
         .connect(addr1)
-        .prolongedLiquidLock(Currencies.ONE_ETHER);
+        .shortProlongedLiquidLock(Currencies.ONE_ETHER);
+
+      // Approve and lock tokens in the long prolonged pool
+      await endemicToken
+        .connect(addr1)
+        .approve(endemicTokenLockingPool.address, Currencies.ONE_ETHER);
+      await endemicTokenLockingPool
+        .connect(addr1)
+        .longProlongedLiquidLock(Currencies.ONE_ETHER);
 
       // Fast forward time to allow prolonged lock to be withdrawable
-      await fastForwardTime(TimePeriods.TWO_YEARS);
+      await fastForwardTime(TimePeriods.ONE_YEAR);
 
       // Get pool stats
       const stats = await endemicTokenLockingPool.getPoolStats(addr1.address);
 
-      expect(stats.permanentLock).to.equal(Currencies.ONE_ETHER);
       expect(stats.liquidLock).to.equal(Currencies.ONE_ETHER);
-      expect(stats.prolongedLiquidLock).to.equal(Currencies.ONE_ETHER);
+      expect(stats.shortProlongedLiquidLock).to.equal(Currencies.ONE_ETHER);
+      expect(stats.longProlongedLiquidLock).to.equal(Currencies.ONE_ETHER);
     });
 
     it('Should return zero stats for an account with no locks', async function () {
       const stats = await endemicTokenLockingPool.getPoolStats(addr1.address);
 
-      expect(stats.permanentLock).to.equal(0);
       expect(stats.liquidLock).to.equal(0);
-      expect(stats.prolongedLiquidLock).to.equal(0);
+      expect(stats.shortProlongedLiquidLock).to.equal(0);
+      expect(stats.longProlongedLiquidLock).to.equal(0);
     });
   });
 
   it('Should revert when trying to lock 0 tokens in any pool', async function () {
-    // Test for permanent lock
-    await expect(
-      endemicTokenLockingPool.connect(addr1).permanentLock(0)
-    ).to.be.revertedWithCustomError(
-      endemicTokenLockingPool,
-      Errors.InsufficientAmount
-    );
-
     // Test for liquid lock
     await expect(
       endemicTokenLockingPool.connect(addr1).liquidLock(0)
@@ -86,9 +78,17 @@ describe('EndemicTokenLockingPool', function () {
       Errors.InsufficientAmount
     );
 
-    // Test for prolonged liquid lock
+    // Test for short prolonged liquid lock
     await expect(
-      endemicTokenLockingPool.connect(addr1).prolongedLiquidLock(0)
+      endemicTokenLockingPool.connect(addr1).shortProlongedLiquidLock(0)
+    ).to.be.revertedWithCustomError(
+      endemicTokenLockingPool,
+      Errors.InsufficientAmount
+    );
+
+    // Test for long prolonged liquid lock
+    await expect(
+      endemicTokenLockingPool.connect(addr1).longProlongedLiquidLock(0)
     ).to.be.revertedWithCustomError(
       endemicTokenLockingPool,
       Errors.InsufficientAmount
