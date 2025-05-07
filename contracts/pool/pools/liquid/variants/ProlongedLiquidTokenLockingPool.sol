@@ -99,15 +99,22 @@ abstract contract ProlongedLiquidTokenLockingPool is
     /**
      * @notice Gets the prolonged liquid lock stats for a specific account
      * @param account Address of the account to get the stats for
-     * @return shortLockAmount The amount of tokens locked in the short prolonged liquid pool
-     * @return longLockAmount The amount of tokens locked in the long prolonged liquid pool
+     * @return shortProlongedLiquidLock The prolonged liquid lock stats for the short prolonged liquid pool
+     * @return longProlongedLiquidLock The prolonged liquid lock stats for the long prolonged liquid pool
      */
     function getProlongedLiquidPoolStats(
         address account
-    ) public view returns (uint256 shortLockAmount, uint256 longLockAmount) {
+    )
+        public
+        view
+        returns (
+            ProlongedLock memory shortProlongedLiquidLock,
+            ProlongedLock memory longProlongedLiquidLock
+        )
+    {
         return (
-            shortProlongedLiquidLocks[account].liquidLock.amount,
-            longProlongedLiquidLocks[account].liquidLock.amount
+            shortProlongedLiquidLocks[account],
+            longProlongedLiquidLocks[account]
         );
     }
 

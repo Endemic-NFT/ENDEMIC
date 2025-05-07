@@ -473,8 +473,14 @@ describe('ProlongedLiquidTokenLockingPool', function () {
         .connect(addr1)
         .getProlongedLiquidPoolStats(addr1.address);
 
-      expect(stats[0]).to.equal(Currencies.ONE_ETHER);
-      expect(stats[1]).to.equal(Currencies.ONE_ETHER);
+      console.log(stats);
+
+      expect(stats.shortProlongedLiquidLock.liquidLock.amount).to.equal(
+        Currencies.ONE_ETHER
+      );
+      expect(stats.longProlongedLiquidLock.liquidLock.amount).to.equal(
+        Currencies.ONE_ETHER
+      );
     });
 
     it('Should revert when trying to start unlock period with 0 tokens locked', async function () {

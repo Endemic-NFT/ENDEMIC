@@ -266,7 +266,7 @@ describe('LiquidTokenLockingPool', function () {
       const stats = await liquidTokenLockingPool.getLiquidPoolStats(
         addr1.address
       );
-      expect(stats).to.equal(Currencies.ONE_ETHER);
+      expect(stats.amount).to.equal(Currencies.ONE_ETHER);
     });
 
     it('Should revert when trying to lock 0 tokens', async function () {

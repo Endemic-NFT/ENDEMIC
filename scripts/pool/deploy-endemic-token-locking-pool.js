@@ -4,7 +4,7 @@ const { getForNetwork } = require('../utils/addresses');
 require('dotenv').config();
 
 async function main() {
-  const { endemicToken } = getForNetwork(network.name);
+  const { endemicENDToken } = getForNetwork(network.name);
 
   const [deployer] = await ethers.getSigners();
 
@@ -19,7 +19,7 @@ async function main() {
 
   const endemicTokenLockingPoolProxy = await upgrades.deployProxy(
     EndemicTokenLockingPool,
-    [endemicToken, process.env.FEE_RECIPIENT],
+    [endemicENDToken, process.env.FEE_RECIPIENT],
     {
       initializer: '__EndemicTokenLockingPool_init',
     }

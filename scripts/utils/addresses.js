@@ -30,6 +30,8 @@ const arbitrum_sepolia = {
   artOrders: '0x74eD3A709e970de96C6273c9b1034BCA8d66A404', //implementation: 0x8E22f0ac4E3097c6778BF7976856669e072111e8
   artOrderFactory: '0x38fa0567899eEC25b064d089e777bAEcbde1C3A9', //implementation: 0xF13743eC697dccfAa849C5574215035027687066
   artOrderCollection: '0xB79852ff8d4c0f37a2926B3cA5A290551E6183e2',
+
+  endemicENDToken: '0x9d0C4b7cb78f4Ccc91B2203c07eD6Be44fA4620B',
 };
 
 const aurora = {
@@ -49,7 +51,7 @@ const mainnet = {
   endemicExchangeProxy: '0xF3891616B1bC96d52f642F2cc8FEB15C6D2a43Da',
   paymentManagerProxy: '0xD48CC91057118e15fB9841c2138E2ec836AbF438',
 
-  endemicENDToken: '0x7f5C4AdeD107F66687E6E55dEe36A3A8FA3de030',
+  endemicENDToken: '0xDEe27DB8236dFFAf4F63830850EDC7693324bb97',
 };
 
 // const sepolia = {
@@ -70,6 +72,7 @@ const sepolia = {
   artOrders: '0x51f37aCE1c7a05B4c2a90a23E05058E1a6202D7C', //implementation: 0x2F6FB5e4a88CDCFB2F0dDa89FB58671812ca2754
   artOrderFactory: '0x8E3C22767df3164cD80b1802b717f1f41193f6aE', //implementation: 0x5B073C9A381146593f943b6E821F5eE220847783
   artOrderCollection: '0xC1E23C1b1744eD7f1d6EA8b374CC0085938106cC',
+  endemicENDToken: '0xC10B2Bfb5392bEB090570d53A488fC41efFb3491',
 
   endemicTokenLockingPool: '0x6571bCc2412CD2255b3e74b1a481C5991c00ecBd',
 };
