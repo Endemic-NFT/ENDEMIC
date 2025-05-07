@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const { deployEndemicTokenPoolWithDeps } = require('../helpers/deploy');
 const { fastForwardTime } = require('../helpers/time');
-const { Currencies, TimePeriods, Errors, PoolType } = require('./constants');
+const { Currencies, TimePeriods, Errors } = require('./constants');
 
 describe('EndemicTokenLockingPool', function () {
   let owner, addr1, addr2, endemicToken, endemicTokenLockingPool, snapshotId;
@@ -55,17 +55,21 @@ describe('EndemicTokenLockingPool', function () {
       // Get pool stats
       const stats = await endemicTokenLockingPool.getPoolStats(addr1.address);
 
-      expect(stats.liquidLock).to.equal(Currencies.ONE_ETHER);
-      expect(stats.shortProlongedLiquidLock).to.equal(Currencies.ONE_ETHER);
-      expect(stats.longProlongedLiquidLock).to.equal(Currencies.ONE_ETHER);
+      expect(stats.liquidLock.amount).to.equal(Currencies.ONE_ETHER);
+      expect(stats.shortProlongedLiquidLock.liquidLock.amount).to.equal(
+        Currencies.ONE_ETHER
+      );
+      expect(stats.longProlongedLiquidLock.liquidLock.amount).to.equal(
+        Currencies.ONE_ETHER
+      );
     });
 
     it('Should return zero stats for an account with no locks', async function () {
       const stats = await endemicTokenLockingPool.getPoolStats(addr1.address);
 
-      expect(stats.liquidLock).to.equal(0);
-      expect(stats.shortProlongedLiquidLock).to.equal(0);
-      expect(stats.longProlongedLiquidLock).to.equal(0);
+      expect(stats.liquidLock.amount).to.equal(0);
+      expect(stats.shortProlongedLiquidLock.liquidLock.amount).to.equal(0);
+      expect(stats.longProlongedLiquidLock.liquidLock.amount).to.equal(0);
     });
   });
 

@@ -14,11 +14,9 @@ abstract contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
      * @notice Locks tokens in the liquid pool
      * @param amount The amount of tokens to lock
      */
-    function liquidLock(uint256 amount)
-        external
-        onlySufficientAmount(amount)
-        nonReentrant
-    {
+    function liquidLock(
+        uint256 amount
+    ) external onlySufficientAmount(amount) nonReentrant {
         LiquidLock memory liquidLockInfo = liquidLocks[msg.sender];
 
         uint256 newLockAmount = liquidLockInfo.amount + amount;
@@ -110,10 +108,12 @@ abstract contract LiquidTokenLockingPool is LiquidTokenLockingPoolBase {
     /**
      * @notice Gets the liquid lock stats for a specific account
      * @param account Address of the account to get the stats for
-     * @return The amount of tokens locked by the account
+     * @return liquidLock The liquid lock stats for the account
      */
-    function getLiquidPoolStats(address account) public view returns (uint256) {
-        return liquidLocks[account].amount;
+    function getLiquidPoolStats(
+        address account
+    ) public view returns (LiquidLock memory) {
+        return liquidLocks[account];
     }
 
     /**

@@ -14,9 +14,9 @@ contract EndemicTokenLockingPool is
     ProlongedLiquidTokenLockingPool
 {
     struct PoolStats {
-        uint256 liquidLock;
-        uint256 shortProlongedLiquidLock;
-        uint256 longProlongedLiquidLock;
+        LiquidLock liquidLock;
+        ProlongedLock shortProlongedLiquidLock;
+        ProlongedLock longProlongedLiquidLock;
     }
 
     /**
@@ -40,20 +40,23 @@ contract EndemicTokenLockingPool is
      * @param account Address of the account to get the stats for
      * @return stats PoolStats structure containing liquidLock, and prolongedLiquidLock
      */
-    function getPoolStats(address account)
-        external
-        view
-        returns (PoolStats memory)
-    {
-        uint256 liquidAmount = LiquidTokenLockingPool.getLiquidPoolStats(account);
+    function getPoolStats(
+        address account
+    ) external view returns (PoolStats memory) {
+        LiquidLock memory liquidLock = LiquidTokenLockingPool
+            .getLiquidPoolStats(account);
 
-        (uint256 shortProlongedLiquidAmount, uint256 longProlongedLiquidAmount) = ProlongedLiquidTokenLockingPool
-            .getProlongedLiquidPoolStats(account);
+        (
+            ProlongedLock memory shortProlongedLiquidLock,
+            ProlongedLock memory longProlongedLiquidLock
+        ) = ProlongedLiquidTokenLockingPool.getProlongedLiquidPoolStats(
+                account
+            );
 
         PoolStats memory stats = PoolStats({
-            liquidLock: liquidAmount,
-            shortProlongedLiquidLock: shortProlongedLiquidAmount,
-            longProlongedLiquidLock: longProlongedLiquidAmount
+            liquidLock: liquidLock,
+            shortProlongedLiquidLock: shortProlongedLiquidLock,
+            longProlongedLiquidLock: longProlongedLiquidLock
         });
 
         return stats;
